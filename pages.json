@@ -1,0 +1,65 @@
+{
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "账单"
+			}
+		},
+		{
+			"path": "pages/add/index",
+			"style": {
+				"navigationBarTitleText": "记账"
+			}
+		},
+		{
+			"path": "pages/statistics/index",
+			"style": {
+				"navigationBarTitleText": "统计"
+			}
+		},
+		{
+			"path": "pages/mine/index",
+			"style": {
+				"navigationBarTitleText": "我的"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {},
+	"tabBar": {
+		"color": "#999999",
+		"selectedColor": "#007AFF",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "账单",
+				"iconPath": "static/tabbar/bill.png",
+				"selectedIconPath": "static/tabbar/bill-active.png"
+			},
+			{
+				"pagePath": "pages/statistics/index",
+				"text": "统计",
+				"iconPath": "static/tabbar/statistics.png",
+				"selectedIconPath": "static/tabbar/statistics-active.png"
+			},
+			{
+				"pagePath": "pages/mine/index",
+				"text": "我的",
+				"iconPath": "static/tabbar/mine.png",
+				"selectedIconPath": "static/tabbar/mine-active.png"
+			}
+		]
+	},
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue"
+		}
+	}
+}
