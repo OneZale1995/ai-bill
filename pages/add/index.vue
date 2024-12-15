@@ -1,38 +1,26 @@
 <template>
   <view class="container">
-    <u-navbar 
-      title="记账" 
-      :border="false" 
-      leftIcon="arrow-left" 
-      @leftClick="goBack"
-    ></u-navbar>
-    
+    <!-- 使用导航栏组件 -->
+    <page-nav title="记账" showBack="true"></page-nav>
+
     <!-- 类型切换 -->
     <view class="type-tabs">
       <view class="tabs-wrapper">
-        <view 
-          v-for="(item, index) in ['支出', '收入']" 
-          :key="index"
-          class="tab-item"
-          :class="{ active: currentTab === index }"
-          @click="switchTab(index)"
-        >
+        <view v-for="(item, index) in ['支出', '收入']" :key="index" class="tab-item"
+          :class="{ active: currentTab === index }" @click="switchTab(index)">
           {{ item }}
         </view>
-        <view 
-          class="tab-line" 
-          :style="{ 
-            transform: `translateX(${currentTab * 100}%)`,
-            width: `${100 / 2}%`
-          }"
-        ></view>
+        <view class="tab-line" :style="{
+          transform: `translateX(${currentTab * 100}%)`,
+          width: `${100 / 2}%`
+        }"></view>
       </view>
     </view>
 
     <!-- 选择分类提示 -->
-    <view class="category-select">
+    <view class="category-select" @click="showAllCategories">
       <view class="category-info" v-if="selectedCategory">
-        <u-icon :name="selectedCategoryIcon" size="32" color="#333"></u-icon>
+        <uni-icons :type="selectedCategoryIcon" size="32" color="#333"></uni-icons>
         <text>{{ selectedCategory }}</text>
       </view>
       <text v-else>选择分类</text>
@@ -51,33 +39,30 @@
         <text class="more" @click="showAllCategories">全部 ></text>
       </view>
       <view class="category-grid">
-        <view 
-          v-for="category in commonCategories" 
-          :key="category.id"
-          class="category-item"
-          :class="{ active: form.categoryId === category.id }"
-          @click="selectCategory(category)"
-        >{{ category.name }}</view>
+        <view v-for="category in commonCategories" :key="category.id" class="category-item"
+          :class="{ active: form.categoryId === category.id }" @click="selectCategory(category)">
+          <category-icon :type="currentTab === 0 ? 'expense' : 'income'" :text="category.name"
+            :is-active="form.categoryId === category.id" />
+          <text>{{ category.name }}</text>
+        </view>
       </view>
     </view>
 
     <!-- 日期选择 -->
     <view class="form-item">
       <text class="label">日期</text>
-      <view class="value" @click="showCalendar = true">
-        {{ form.date }}
-        <u-icon name="arrow-right" size="24" color="#999"></u-icon>
-      </view>
+      <picker mode="date" :value="form.date" @change="onDateChange">
+        <view class="value">
+          {{ form.date }}
+          <uni-icons type="right" size="24" color="#999"></uni-icons>
+        </view>
+      </picker>
     </view>
 
     <!-- 消费人选择 -->
     <view class="form-item">
       <text class="label">消费人</text>
-      <picker 
-        :range="members" 
-        range-key="name"
-        @change="handleMemberChange"
-      >
+      <picker :range="members" range-key="name" @change="handleMemberChange">
         <view class="picker-value">
           {{ selectedMember ? selectedMember.name : '请选择' }}
         </view>
@@ -87,11 +72,7 @@
     <!-- 消费类型选择 -->
     <view class="form-item">
       <text class="label">消费类型</text>
-      <picker 
-        :range="consumeTypes" 
-        range-key="name"
-        @change="handleTypeChange"
-      >
+      <picker :range="consumeTypes" range-key="name" @change="handleTypeChange">
         <view class="picker-value">
           {{ selectedConsumeType ? selectedConsumeType.name : '请选择' }}
         </view>
@@ -100,11 +81,7 @@
 
     <!-- 备注输入 -->
     <view class="form-item">
-      <input
-        v-model="form.note"
-        placeholder="添加备注..."
-        class="remark-input"
-      />
+      <input v-model="form.note" placeholder="添加备注..." class="remark-input" />
     </view>
 
 
@@ -138,35 +115,19 @@
       </view>
     </view>
 
-    <!-- 日期选择器 -->
-    <u-calendar
-      :show="showCalendar"
-      @close="showCalendar = false"
-      @confirm="handleDateSelect"
-    ></u-calendar>
-
     <!-- 分类选择弹出层 -->
-    <u-popup 
-      v-if="showCategoryPopup" 
-      :show="showCategoryPopup" 
-      @close="closeCategoryPopup" 
-      mode="bottom" 
-      round="10"
-      :overlay="true"
-      :overlay-style="{ background: 'rgba(0,0,0,0.5)' }"
-      :custom-style="{ backgroundColor: '#fff' }"
-    >
+    <uni-popup ref="categoryPopup" type="bottom">
       <view class="category-popup">
         <!-- 顶部导航 -->
         <view class="popup-header">
           <view class="left" @click="closeCategoryPopup">
-            <u-icon name="arrow-left" size="24"></u-icon>
+            <uni-icons type="left" size="24"></uni-icons>
           </view>
           <view class="center">
             <text>{{ currentTab === 0 ? '支出' : '收入' }}</text>
           </view>
           <view class="right">
-            <u-icon name="plus" size="24"></u-icon>
+            <uni-icons type="plusempty" size="24"></uni-icons>
           </view>
         </view>
 
@@ -174,13 +135,8 @@
         <view class="category-content">
           <!-- 左侧主分类 -->
           <scroll-view scroll-y class="main-category">
-            <view 
-              v-for="category in mainCategories" 
-              :key="category.id"
-              class="main-category-item"
-              :class="{ active: currentMainCategory === category.id }"
-              @click="selectMainCategory(category.id)"
-            >
+            <view v-for="category in mainCategories" :key="category.id" class="main-category-item"
+              :class="{ active: currentMainCategory === category.id }" @click="selectMainCategory(category.id)">
               <text>{{ category.name }}</text>
               <view class="active-bar"></view>
             </view>
@@ -189,34 +145,31 @@
           <!-- 右侧子分类 -->
           <scroll-view scroll-y class="sub-category">
             <view class="sub-category-list">
-              <view 
-                v-for="category in currentSubCategories" 
-                :key="category.id"
-                class="sub-category-item"
-                :class="{ active: form.categoryId === category.id }"
-                @click="selectSubCategory(category)"
-              >
-                <view class="icon-wrapper">
-                  <u-icon :name="category.icon" size="30"></u-icon>
+              <view v-for="category in currentSubCategories" :key="category.id" class="sub-category-item"
+                :class="{ active: form.categoryId === category.id }" @click="selectSubCategory(category)">
+                <view class="category-info">
+                  <uni-icons :type="selectedCategoryIcon" size="32" color="#333"></uni-icons>
+                  <text>>{{ category.name }}</text>
                 </view>
-                <text>{{ category.name }}</text>
+
               </view>
             </view>
           </scroll-view>
         </view>
       </view>
-    </u-popup>
+    </uni-popup>
   </view>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
+import pageNav from '@/components/page-nav.vue'  // 导入组件
+import CategoryIcon from '@/components/category-icon.vue'
 
+const categoryPopup = ref(null)
 const currentTab = ref(0)
-const showCalendar = ref(false)
-const showCategoryPopup = ref(false)
-const currentMainCategory = ref(1)
 const selectedCategory = ref('')
+const currentMainCategory = ref(1)
 
 const form = ref({
   amount: '',
@@ -302,7 +255,7 @@ const mainCategories = computed(() => {
   return currentTab.value === 0 ? expenseCategories.main : incomeCategories.main
 })
 
-// 根据当前类��和主分类获取子分类
+// 根据当前类型和主分类获取子分类
 const currentSubCategories = computed(() => {
   const categories = currentTab.value === 0 ? expenseCategories.sub : incomeCategories.sub
   return categories[currentMainCategory.value] || []
@@ -319,7 +272,7 @@ const selectedCategoryIcon = computed(() => {
   // 先从常用分类中查找
   const commonCategory = commonCategories.value.find(c => c.id === form.value.categoryId)
   if (commonCategory) return commonCategory.icon || 'star'
-  
+
   // 从子分类中查找
   for (const key in expenseCategories.sub) {
     const category = expenseCategories.sub[key].find(c => c.id === form.value.categoryId)
@@ -348,12 +301,16 @@ const selectSubCategory = (category) => {
 
 // 显示全部分类
 const showAllCategories = () => {
-  showCategoryPopup.value = true
+  if (categoryPopup.value) {
+    categoryPopup.value.open()
+  }
 }
 
 // 关闭分类弹出层
 const closeCategoryPopup = () => {
-  showCategoryPopup.value = false
+  if (categoryPopup.value) {
+    categoryPopup.value.close()
+  }
 }
 
 const inputNumber = (num) => {
@@ -409,16 +366,16 @@ const resetForm = () => {
 // 保存并返回首页
 const handleSubmit = async () => {
   if (!validateForm()) return
-  
+
   try {
     // TODO: 发送请求到后端
     // const res = await api.saveBill(form.value)
-    
+
     uni.showToast({
       title: '保存成功',
       icon: 'success'
     })
-    
+
     // 回首页
     setTimeout(() => {
       uni.navigateBack()
@@ -434,16 +391,16 @@ const handleSubmit = async () => {
 // 保存并继续记账
 const saveAndContinue = async () => {
   if (!validateForm()) return
-  
+
   try {
     // TODO: 发送请求到后端
     // const res = await api.saveBill(form.value)
-    
+
     uni.showToast({
       title: '保存成功',
       icon: 'success'
     })
-    
+
     // 重置表单
     resetForm()
   } catch (error) {
@@ -458,9 +415,10 @@ const showCalculator = () => {
   // 显示计算器
 }
 
-const handleDateSelect = (date) => {
-  form.value.date = new Date(date).toLocaleDateString()
-  showCalendar.value = false
+// 打开日期选择器
+const openCalendar = () => {
+  showCalendar.value = true
+  console.log('openCalendar', showCalendar.value)
 }
 
 // 添加切换标签的方法
@@ -496,25 +454,64 @@ const handleMemberChange = (e) => {
 const handleTypeChange = (e) => {
   selectedConsumeType.value = consumeTypes[e.detail.value]
 }
+
+// 弹出层关闭事件处理
+const onPopupChange = (e) => {
+  if (!e.show) {
+    closeCategoryPopup()
+  }
+}
+
+const datePopup = ref(null)
+
+// 打开日期选择弹窗
+const openDatePopup = () => {
+  datePopup.value.open()
+}
+
+// 关闭日期选择弹窗
+const closeDatePopup = () => {
+  datePopup.value.close()
+}
+
+// 修改日期选择处理函数
+const handleDateSelect = (e) => {
+  if (e.range && e.range[0]) {
+    form.value.date = formatDate(e.range[0])
+    closeDatePopup()
+  }
+}
+
+// 日期选择改变处理
+const onDateChange = (e) => {
+  form.value.date = new Date(e.detail.value).toLocaleDateString()
+}
+
+// 在其他方法的同级添加 goBack 方法
+const goBack = () => {
+  uni.navigateBack({
+    delta: 1
+  })
+}
 </script>
 
 <style lang="scss">
 .container {
   min-height: 100vh;
-  background: #fff;
-  padding: 0 30rpx;
+  background-color: #f5f5f5;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .type-tabs {
   padding: 20rpx 0;
   position: relative;
-  
+
   .tabs-wrapper {
     display: flex;
     position: relative;
     width: 200rpx; // 调整宽度以适应两个标签
   }
-  
+
   .tab-item {
     flex: 1;
     text-align: center;
@@ -524,13 +521,13 @@ const handleTypeChange = (e) => {
     position: relative;
     z-index: 1;
     transition: all 0.3s ease;
-    
+
     &.active {
       color: #2878ff;
       font-weight: 500;
     }
   }
-  
+
   .tab-line {
     position: absolute;
     bottom: 0;
@@ -562,13 +559,13 @@ const handleTypeChange = (e) => {
 
 .amount-input {
   margin: 20rpx 0 40rpx;
-  
+
   .currency {
     font-size: 40rpx;
     color: #333;
     margin-right: 10rpx;
   }
-  
+
   .amount {
     font-size: 48rpx;
     color: #333;
@@ -582,29 +579,33 @@ const handleTypeChange = (e) => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20rpx;
-    
+
     .more {
       color: #999;
-      font-size: 26rpx;
+      // font-size: 26rpx;
     }
   }
-  
+
   .category-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 20rpx;
-    
+    gap: 30rpx;
+    padding: 20rpx;
+
     .category-item {
-      text-align: center;
-      padding: 20rpx;
-      background: #f5f5f5;
-      border-radius: 8rpx;
-      font-size: 28rpx;
-      color: #333;
-      
+      display: flex;
+      // flex-direction: row; // 改为水平布局
+      // align-items: center; // 垂直居中
+      // justify-content: center;
+      // padding: 12rpx;
+      // border-radius: 8rpx;
+
       &.active {
-        background: #e6f0ff;
-        color: #2878ff;
+        background-color: rgba(40, 120, 255, 0.1); // 选中时的浅蓝色背景
+
+        // text {
+        //   color: #2878ff;
+        // }
       }
     }
   }
@@ -616,12 +617,12 @@ const handleTypeChange = (e) => {
   align-items: center;
   padding: 30rpx 0;
   border-bottom: 1rpx solid #eee;
-  
+
   .label {
     font-size: 28rpx;
     color: #333;
   }
-  
+
   .value {
     display: flex;
     align-items: center;
@@ -629,7 +630,7 @@ const handleTypeChange = (e) => {
     font-size: 28rpx;
     color: #666;
   }
-  
+
   .remark-input {
     flex: 1;
     font-size: 28rpx;
@@ -652,12 +653,12 @@ const handleTypeChange = (e) => {
   right: 0;
   background: #f5f5f5;
   padding: 10rpx;
-  
+
   .keyboard-row {
     display: flex;
     gap: 6rpx;
     margin-bottom: 6rpx;
-    
+
     .key {
       flex: 1;
       height: 80rpx;
@@ -668,21 +669,21 @@ const handleTypeChange = (e) => {
       justify-content: center;
       font-size: 32rpx;
       color: #333;
-      
+
       &:active {
         opacity: 0.7;
       }
-      
+
       &.save {
         background: #f0f7ff;
         color: #2878ff;
         font-size: 26rpx;
-        
+
         &.main {
           background: #2878ff;
           color: #fff;
         }
-        
+
         &:active {
           opacity: 0.8;
         }
@@ -698,7 +699,7 @@ const handleTypeChange = (e) => {
   flex-direction: column;
   position: relative;
   z-index: 100;
-  
+
   .popup-header {
     background: #fff;
     display: flex;
@@ -706,7 +707,8 @@ const handleTypeChange = (e) => {
     padding: 24rpx 30rpx;
     border-bottom: 1rpx solid #f5f5f5;
 
-    .left, .right {
+    .left,
+    .right {
       width: 80rpx;
       display: flex;
       align-items: center;
@@ -767,43 +769,33 @@ const handleTypeChange = (e) => {
       flex: 1;
       height: 100%;
       background: #fff;
-      
+
       &-list {
         padding: 20rpx;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 20rpx;
       }
 
       &-item {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        gap: 12rpx;
-        padding: 16rpx 0;
+        justify-content: center;
+        padding: 16rpx;
         transition: all 0.3s;
 
-        .icon-wrapper {
-          width: 88rpx;
-          height: 88rpx;
-          border-radius: 50%;
-          background: #f5f6f7;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.3s;
-        }
-
         text {
+          margin-left: 12rpx;
           font-size: 26rpx;
           color: #333;
           transition: all 0.3s;
         }
 
         &.active {
-          .icon-wrapper {
-            background: rgba(40, 120, 255, 0.1);
-          }
+          background: rgba(40, 120, 255, 0.1);
+          border-radius: 8rpx;
+
           text {
             color: #2878ff;
             font-weight: 500;
@@ -845,15 +837,36 @@ const handleTypeChange = (e) => {
 // 添加内容切换动画
 .category-section {
   transition: opacity 0.3s ease;
-  
+
   &.fade-enter-active,
   &.fade-leave-active {
     transition: opacity 0.3s ease;
   }
-  
+
   &.fade-enter-from,
   &.fade-leave-to {
     opacity: 0;
   }
 }
-</style> 
+
+.popup-content {
+  background-color: #fff;
+
+  .popup-header {
+    padding: 20rpx 30rpx;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+
+    text {
+      font-size: 32rpx;
+      font-weight: 500;
+    }
+
+    .close-btn {
+      padding: 10rpx;
+    }
+  }
+}
+</style>

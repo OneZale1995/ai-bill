@@ -1,0 +1,13 @@
+{
+  "name": "ai-bill",
+  "version": "1.0.0",
+  "description": "A bill management app built with uni-app",
+  "main": "main.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
