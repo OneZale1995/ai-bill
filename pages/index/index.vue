@@ -1,16 +1,6 @@
 <template>
   <view class="container">
-<!-- 顶部导航栏 -->
-<!-- <uni-nav-bar
-  :fixed="true"
-  :status-bar="true"
-  background-color="#2878ff"
-  :border="false"
-  :title="currentAccount"
-  color="#FFFFFF"
-  :title-center="true"
-/> -->
-<page-nav :title="currentAccount"></page-nav>
+    <page-nav :title="currentAccount"></page-nav>
 
     <!-- 月度统计 -->
     <view class="month-summary">
@@ -39,18 +29,11 @@
             <text class="summary">收入 {{ getDayIncome(group) }} 支出 {{ getDayExpense(group) }}</text>
           </view>
         </view>
-        
+
         <view class="bill-items">
-          <view 
-            v-for="bill in group" 
-            :key="bill.id"
-            class="bill-item"
-          >
+          <view v-for="bill in group" :key="bill.id" class="bill-item">
             <view class="bill-info">
-              <category-icon 
-                :type="bill.type"
-                :text="bill.note"
-              />
+              <category-icon :type="bill.type" :text="bill.note" />
               <view class="bill-details">
                 <view class="primary-info">
                   <text class="category-name">{{ bill.note }}</text>
@@ -68,12 +51,12 @@
         </view>
       </view>
     </view>
-    
+
     <view v-else class="empty-state">
       <image src="/static/images/empty.svg" mode="aspectFit" class="empty-image"></image>
       <text class="empty-text">暂无账单</text>
     </view>
-    
+
     <!-- 添加按钮 -->
     <view class="add-btn" @click="goToAdd">
       <uni-icons type="plusempty" size="28" color="#FFFFFF"></uni-icons>
@@ -82,8 +65,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import CategoryIcon from '@/components/category-icon.vue'
+import { handleWxLogin } from '@/api/auth'
+
+onMounted(async () => {
+  const isLoggedIn = uni.getStorageSync('token')
+  if (!isLoggedIn) {
+    await handleWxLogin()
+  }
+})
 
 // Mock 数据
 const mockBills = [
@@ -163,24 +154,18 @@ const goToAdd = () => {
 </script>
 
 <style lang="scss">
-.container {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
 :deep(.uni-nav-bar__header) {
   .uni-nav-bar__header-container {
     justify-content: center;
-    
+
     .uni-nav-bar__header-btns {
       display: none;
     }
-    
+
     .uni-nav-bar__header-container-inner {
       flex: none;
       justify-content: center;
-      
+
       .uni-nav-bar__content-title {
         color: #FFFFFF;
       }
@@ -206,43 +191,44 @@ const goToAdd = () => {
 
 .month-summary {
   background: linear-gradient(180deg, #2878ff 0%, #2878ff 100%);
-  padding: 20rpx 32rpx;  // 减小padding
+  padding: 20rpx 32rpx; // 减小padding
   color: #fff;
-  
+
   .balance {
     text-align: center;
-    margin-bottom: 16rpx;  // 减小margin
-    
+    margin-bottom: 16rpx; // 减小margin
+
     .label {
-      font-size: 24rpx;  // 减小字体
+      font-size: 24rpx; // 减小字体
       opacity: 0.9;
     }
-    
+
     .amount {
       display: block;
-      font-size: 48rpx;  // 减小字体
+      font-size: 48rpx; // 减小字体
       font-weight: 500;
       margin-top: 4rpx;
       font-family: 'DIN Alternate', sans-serif;
-      
+
       &.negative {
         color: #ff4d4f;
       }
     }
   }
-  
+
   .details {
     display: flex;
     justify-content: space-around;
-    
-    .income, .expense {
+
+    .income,
+    .expense {
       text-align: center;
-      
+
       .label {
         font-size: 24rpx;
         opacity: 0.9;
       }
-      
+
       .value {
         display: block;
         font-size: 28rpx;
@@ -252,48 +238,49 @@ const goToAdd = () => {
     }
   }
 }
+
 .bill-list {
   background: #fff;
-  
+
   .date-header {
     padding: 20rpx 32rpx;
     background: #f8f8f8;
-    
+
     .date-info {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-size: 28rpx;
       color: #666;
-      
+
       .date {
         font-weight: 500;
       }
-      
+
       .summary {
         font-size: 24rpx;
         color: #999;
       }
     }
   }
-  
+
   .bill-items {
     padding: 0 32rpx;
   }
-  
+
   .bill-item {
     padding: 16rpx 0;
     border-bottom: 1rpx solid #f5f5f5;
-    
+
     &:last-child {
       border-bottom: none;
     }
-    
+
     .bill-info {
       display: flex;
       align-items: center;
     }
-    
+
     .category-icon {
       width: 64rpx;
       height: 64rpx;
@@ -302,52 +289,52 @@ const goToAdd = () => {
       align-items: center;
       justify-content: center;
       margin-right: 20rpx;
-      
+
       &.income {
         background-color: #2878ff;
       }
-      
+
       &.expense {
         background-color: #ff9c6e;
       }
-      
+
       .category-text {
         color: #fff;
         font-size: 26rpx;
       }
     }
-    
+
     .bill-details {
       flex: 1;
-      
+
       .primary-info {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 4rpx;
-        
+
         .category-name {
           font-size: 28rpx;
           color: #333;
         }
-        
+
         .amount {
           font-size: 28rpx;
           color: #ff4d4f;
           font-family: 'DIN Alternate', sans-serif;
-          
+
           &.income {
             color: #2878ff;
           }
         }
       }
-      
+
       .secondary-info {
         display: flex;
         justify-content: space-between;
         font-size: 22rpx;
         color: #999;
-        
+
         .payment-method {
           color: #666;
         }
@@ -377,13 +364,13 @@ const goToAdd = () => {
   align-items: center;
   justify-content: center;
   padding: 120rpx 32rpx;
-  
+
   .empty-image {
     width: 240rpx;
     height: 240rpx;
     margin-bottom: 32rpx;
   }
-  
+
   .empty-text {
     font-size: 28rpx;
     color: #999;

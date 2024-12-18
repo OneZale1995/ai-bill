@@ -243,154 +243,154 @@ const validateForm = () => {
 </script>
 
 <style lang="scss">
-.container {
-  min-height: 100vh;
-  background-color: #f5f5f5;
-  padding-bottom: env(safe-area-inset-bottom);
-}
+// .container {
+//   min-height: 100vh;
+//   background-color: #f5f5f5;
+//   padding-bottom: env(safe-area-inset-bottom);
+// }
 
-.nav-title {
-  color: #fff;
-}
+// .nav-title {
+//   color: #fff;
+// }
 
-.amount-input {
-  background: #fff;
-  padding: 40rpx 32rpx;
-  margin: 20rpx 0;
-  display: flex;
-  align-items: baseline;
+// .amount-input {
+//   background: #fff;
+//   padding: 40rpx 32rpx;
+//   margin: 20rpx 0;
+//   display: flex;
+//   align-items: baseline;
   
-  .currency {
-    font-size: 40rpx;
-    color: #333;
-    margin-right: 8rpx;
-  }
+//   .currency {
+//     font-size: 40rpx;
+//     color: #333;
+//     margin-right: 8rpx;
+//   }
   
-  .amount {
-    font-size: 60rpx;
-    color: #333;
-    font-weight: 500;
-    font-family: 'DIN Alternate', sans-serif;
-  }
-}
+//   .amount {
+//     font-size: 60rpx;
+//     color: #333;
+//     font-weight: 500;
+//     font-family: 'DIN Alternate', sans-serif;
+//   }
+// }
 
-.category-list {
-  background: #fff;
-  padding: 32rpx;
-  margin-bottom: 20rpx;
+// .category-list {
+//   background: #fff;
+//   padding: 32rpx;
+//   margin-bottom: 20rpx;
   
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 32rpx;
-  }
+//   .category-grid {
+//     display: grid;
+//     grid-template-columns: repeat(4, 1fr);
+//     gap: 32rpx;
+//   }
   
-  .category-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20rpx 0;
-    border-radius: 12rpx;
+//   .category-item {
+//     display: flex;
+//     flex-direction: column;
+//     align-items: center;
+//     padding: 20rpx 0;
+//     border-radius: 12rpx;
     
-    &.active {
-      background: rgba(40, 120, 255, 0.1);
-    }
+//     &.active {
+//       background: rgba(40, 120, 255, 0.1);
+//     }
     
-    .category-name {
-      font-size: 24rpx;
-      color: #333;
-      margin-top: 8rpx;
-    }
-  }
-}
+//     .category-name {
+//       font-size: 24rpx;
+//       color: #333;
+//       margin-top: 8rpx;
+//     }
+//   }
+// }
 
-.number-keyboard {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #f5f5f5;
-  padding: 20rpx;
+// .number-keyboard {
+//   position: fixed;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   background: #f5f5f5;
+//   padding: 20rpx;
   
-  .keyboard-grid {
-    background: #fff;
-    border-radius: 12rpx;
-    overflow: hidden;
-  }
+//   .keyboard-grid {
+//     background: #fff;
+//     border-radius: 12rpx;
+//     overflow: hidden;
+//   }
   
-  .key-row {
-    display: flex;
+//   .key-row {
+//     display: flex;
     
-    .key {
-      flex: 1;
-      height: 100rpx;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36rpx;
-      border: 1rpx solid #eee;
-      background: #fff;
+//     .key {
+//       flex: 1;
+//       height: 100rpx;
+//       display: flex;
+//       align-items: center;
+//       justify-content: center;
+//       font-size: 36rpx;
+//       border: 1rpx solid #eee;
+//       background: #fff;
       
-      &.delete {
-        background: #f5f5f5;
-      }
+//       &.delete {
+//         background: #f5f5f5;
+//       }
       
-      &:active {
-        background: #f5f5f5;
-      }
-    }
-  }
-}
+//       &:active {
+//         background: #f5f5f5;
+//       }
+//     }
+//   }
+// }
 
-.popup-content {
-  background: #fff;
-  border-radius: 24rpx 24rpx 0 0;
+// .popup-content {
+//   background: #fff;
+//   border-radius: 24rpx 24rpx 0 0;
   
-  .popup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 32rpx;
-    border-bottom: 1rpx solid #eee;
+//   .popup-header {
+//     display: flex;
+//     justify-content: space-between;
+//     align-items: center;
+//     padding: 32rpx;
+//     border-bottom: 1rpx solid #eee;
     
-    .close {
-      color: #2878ff;
-      font-size: 28rpx;
-    }
-  }
-}
+//     .close {
+//       color: #2878ff;
+//       font-size: 28rpx;
+//     }
+//   }
+// }
 
-.input-area {
-  padding: 32rpx;
+// .input-area {
+//   padding: 32rpx;
   
-  .note-input {
-    width: 100%;
-    height: 80rpx;
-    background: #f5f5f5;
-    border-radius: 8rpx;
-    padding: 0 24rpx;
-    font-size: 28rpx;
-  }
-}
+//   .note-input {
+//     width: 100%;
+//     height: 80rpx;
+//     background: #f5f5f5;
+//     border-radius: 8rpx;
+//     padding: 0 24rpx;
+//     font-size: 28rpx;
+//   }
+// }
 
-.bottom-buttons {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 20rpx 32rpx;
-  background: #fff;
-  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+// .bottom-buttons {
+//   position: fixed;
+//   left: 0;
+//   right: 0;
+//   bottom: 0;
+//   padding: 20rpx 32rpx;
+//   background: #fff;
+//   box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
   
-  .submit-btn {
-    background: #2878ff;
-    border-radius: 8rpx;
-    color: #fff;
-    font-size: 32rpx;
+//   .submit-btn {
+//     background: #2878ff;
+//     border-radius: 8rpx;
+//     color: #fff;
+//     font-size: 32rpx;
     
-    &:active {
-      opacity: 0.9;
-    }
-  }
-}
+//     &:active {
+//       opacity: 0.9;
+//     }
+//   }
+// }
 </style>

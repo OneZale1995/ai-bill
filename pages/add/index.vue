@@ -1,90 +1,63 @@
 <template>
   <view class="container">
-    <!-- 使用导航栏组件 -->
-    <page-nav title="记账" showBack="true"></page-nav>
+    <page-nav title="记一笔" showBack="true"></page-nav>
 
-    <!-- 类型切换 -->
-    <view class="type-tabs">
-      <view class="tabs-wrapper">
-        <view v-for="(item, index) in ['支出', '收入']" :key="index" class="tab-item"
-          :class="{ active: currentTab === index }" @click="switchTab(index)">
-          {{ item }}
+    <!-- 收入/支出切换 -->
+    <view class="type-switch">
+      <view class="type-item" :class="{ active: form.type === 2 }" @click="form.type = 2">支出</view>
+      <view class="type-item" :class="{ active: form.type === 1 }" @click="form.type = 1">收入</view>
+    </view>
+
+    <!-- 表单区域 -->
+    <uni-forms ref="formRef" :model="form" :rules="rules" class="form-section uni-bg-white"  label-position="right">
+
+      <!-- 金额显示区域 -->
+      <view class="amount-input">
+        <view class="selected-category" v-if="selectedCategory">
+          {{ selectedCategory.name }}
         </view>
-        <view class="tab-line" :style="{
-          transform: `translateX(${currentTab * 100}%)`,
-          width: `${100 / 2}%`
-        }"></view>
-      </view>
-    </view>
-
-    <!-- 选择分类提示 -->
-    <view class="category-select" @click="showAllCategories">
-      <view class="category-info" v-if="selectedCategory">
-        <uni-icons :type="selectedCategoryIcon" size="32" color="#333"></uni-icons>
-        <text>{{ selectedCategory }}</text>
-      </view>
-      <text v-else>选择分类</text>
-    </view>
-
-    <!-- 金额输入 -->
-    <view class="amount-input">
-      <text class="currency">¥</text>
-      <text class="amount">{{ form.amount || '0.00' }}</text>
-    </view>
-
-    <!-- 常用分类 -->
-    <view class="category-section">
-      <view class="section-header">
-        <text>常用类别</text>
-        <text class="more" @click="showAllCategories">全部 ></text>
-      </view>
-      <view class="category-grid">
-        <view v-for="category in commonCategories" :key="category.id" class="category-item"
-          :class="{ active: form.categoryId === category.id }" @click="selectCategory(category)">
-          <category-icon :type="currentTab === 0 ? 'expense' : 'income'" :text="category.name"
-            :is-active="form.categoryId === category.id" />
-          <text>{{ category.name }}</text>
+        <view class="amount-section">
+          <text class="currency">¥</text>
+          <text class="amount">{{ form.amount || '0.00' }}</text>
         </view>
       </view>
-    </view>
 
-    <!-- 日期选择 -->
-    <view class="form-item">
-      <text class="label">日期</text>
-      <picker mode="date" :value="form.date" @change="onDateChange">
-        <view class="value">
-          {{ form.date }}
-          <uni-icons type="right" size="24" color="#999"></uni-icons>
+      <!-- 分类选择区域 -->
+      <view class="category-section">
+        <!-- 常用分类列表 -->
+        <view class="quick-categories">
+          <view v-for="item in displayCategories" :key="item.id" class="category-item"
+            :class="{ active: form.categoryId === item.id }" @click="form.categoryId = item.id">
+            {{ item.name }}
+          </view>
         </view>
-      </picker>
-    </view>
 
-    <!-- 消费人选择 -->
-    <view class="form-item">
-      <text class="label">消费人</text>
-      <picker :range="members" range-key="name" @change="handleMemberChange">
-        <view class="picker-value">
-          {{ selectedMember ? selectedMember.name : '请选择' }}
+        <!-- 查看更多按钮 -->
+        <view class="more-btn" @click="showAllCategories">
+          查看更多
         </view>
-      </picker>
-    </view>
+      </view>
 
-    <!-- 消费类型选择 -->
-    <view class="form-item">
-      <text class="label">消费类型</text>
-      <picker :range="consumeTypes" range-key="name" @change="handleTypeChange">
-        <view class="picker-value">
-          {{ selectedConsumeType ? selectedConsumeType.name : '请选择' }}
-        </view>
-      </picker>
-    </view>
+      <!-- 日期选择 -->
+      <uni-forms-item label="日期" name="date" required>
+        <uni-datetime-picker v-model="form.date" type="date" :end="today" />
+      </uni-forms-item>
 
-    <!-- 备注输入 -->
-    <view class="form-item">
-      <input v-model="form.note" placeholder="添加备注..." class="remark-input" />
-    </view>
+      <!-- 角色选择 -->
+      <uni-forms-item label="角色" name="role" required>
+        <uni-data-select v-model="form.role" :localdata="roleOptions" placeholder="请选择角色" />
+      </uni-forms-item>
 
+      <!-- 平台选择 -->
+      <uni-forms-item label="平台" name="platform" required>
+        <uni-data-select v-model="form.platform" :localdata="platformOptions" placeholder="请选择平台" />
+      </uni-forms-item>
 
+      <!-- 备注输入 -->
+      <uni-forms-item label="备注" name="remark">
+        <uni-easyinput v-model="form.remark" placeholder="请输入备注信息" :maxlength="50" />
+      </uni-forms-item>
+    </uni-forms>
 
     <!-- 数字键盘 -->
     <view class="number-keyboard">
@@ -92,9 +65,7 @@
         <view class="key" @click="inputNumber('1')">1</view>
         <view class="key" @click="inputNumber('2')">2</view>
         <view class="key" @click="inputNumber('3')">3</view>
-        <view class="key" @click="deleteNumber">
-          <text>←</text>
-        </view>
+        <view class="key" @click="deleteNumber">←</view>
       </view>
       <view class="keyboard-row">
         <view class="key" @click="inputNumber('4')">4</view>
@@ -115,47 +86,24 @@
       </view>
     </view>
 
-    <!-- 分类选择弹出层 -->
-    <uni-popup ref="categoryPopup" type="bottom">
-      <view class="category-popup">
-        <!-- 顶部导航 -->
+    <!-- 分类选择弹窗 -->
+    <uni-popup ref="popup" type="bottom">
+      <view class="popup-content">
         <view class="popup-header">
-          <view class="left" @click="closeCategoryPopup">
-            <uni-icons type="left" size="24"></uni-icons>
-          </view>
-          <view class="center">
-            <text>{{ currentTab === 0 ? '支出' : '收入' }}</text>
-          </view>
-          <view class="right">
-            <uni-icons type="plusempty" size="24"></uni-icons>
-          </view>
+          <text class="title">选择分类</text>
+          <text class="close" @click="popup.close()">关闭</text>
         </view>
-
-        <!-- 分类内容区 -->
-        <view class="category-content">
-          <!-- 左侧主分类 -->
-          <scroll-view scroll-y class="main-category">
-            <view v-for="category in mainCategories" :key="category.id" class="main-category-item"
-              :class="{ active: currentMainCategory === category.id }" @click="selectMainCategory(category.id)">
-              <text>{{ category.name }}</text>
-              <view class="active-bar"></view>
-            </view>
-          </scroll-view>
-
-          <!-- 右侧子分类 -->
-          <scroll-view scroll-y class="sub-category">
-            <view class="sub-category-list">
-              <view v-for="category in currentSubCategories" :key="category.id" class="sub-category-item"
-                :class="{ active: form.categoryId === category.id }" @click="selectSubCategory(category)">
-                <view class="category-info">
-                  <uni-icons :type="selectedCategoryIcon" size="32" color="#333"></uni-icons>
-                  <text>>{{ category.name }}</text>
-                </view>
-
-              </view>
-            </view>
-          </scroll-view>
-        </view>
+        <scroll-view scroll-y class="category-list">
+          <view 
+            v-for="item in currentCategories" 
+            :key="item.id"
+            class="popup-item"
+            :class="{ active: form.categoryId === item.id }"
+            @click="selectCategory(item)"
+          >
+            {{ item.name }}
+          </view>
+        </scroll-view>
       </view>
     </uni-popup>
   </view>
@@ -163,159 +111,90 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import pageNav from '@/components/page-nav.vue'  // 导入组件
-import CategoryIcon from '@/components/category-icon.vue'
+import pageNav from '@/components/page-nav.vue'
 
-const categoryPopup = ref(null)
-const currentTab = ref(0)
-const selectedCategory = ref('')
-const currentMainCategory = ref(1)
-
+const formRef = ref(null)
+const today = new Date().toISOString().split('T')[0]
+// 表单数据
 const form = ref({
   amount: '',
+  type: 2, // 默认支出
   categoryId: '',
-  note: '',
-  date: new Date().toLocaleDateString()
+  date: today,
+  role: '',
+  platform: '',
+  remark: ''
 })
 
-// 支出分类数据
-const expenseCategories = {
-  main: [
-    { id: 1, name: '餐饮' },
-    { id: 2, name: '交通' },
-    { id: 3, name: '购物' },
-    { id: 4, name: '居家' },
-    { id: 5, name: '娱乐' },
-    { id: 6, name: '医疗' },
-    { id: 7, name: '教育' }
-  ],
-  sub: {
-    1: [ // 餐饮子分类
-      { id: 101, name: '早餐', icon: 'clock' },
-      { id: 102, name: '午餐', icon: 'clock' },
-      { id: 103, name: '晚餐', icon: 'clock' },
-      { id: 104, name: '夜宵', icon: 'clock' },
-      { id: 105, name: '零食', icon: 'food' },
-      { id: 106, name: '饮料', icon: 'cup' }
-    ],
-    2: [ // 交通子分类
-      { id: 201, name: '公交', icon: 'car' },
-      { id: 202, name: '地铁', icon: 'car' },
-      { id: 203, name: '打车', icon: 'car' },
-      { id: 204, name: '加油', icon: 'car' }
-    ]
-    // ... 其他支出子分类
-  }
-}
-
-// 收入分类数据
-const incomeCategories = {
-  main: [
-    { id: 1, name: '工资' },
-    { id: 2, name: '奖金' },
-    { id: 3, name: '理财' },
-    { id: 4, name: '兼' },
-    { id: 5, name: '其他' }
-  ],
-  sub: {
-    1: [ // 工资子分类
-      { id: 101, name: '月薪', icon: 'rmb-circle' },
-      { id: 102, name: '年终奖', icon: 'rmb-circle' }
-    ],
-    2: [ // 奖金子分类
-      { id: 201, name: '项目奖金', icon: 'rmb-circle' },
-      { id: 202, name: '绩效奖金', icon: 'rmb-circle' }
-    ]
-    // ... 其他收入子分类
-  }
-}
-
-// 常用支出分类
-const commonExpenseCategories = [
-  { id: 101, name: '早餐', icon: 'clock' },
-  { id: 102, name: '午餐', icon: 'clock' },
-  { id: 103, name: '晚餐', icon: 'clock' },
-  { id: 104, name: '夜宵', icon: 'clock' },
-  { id: 201, name: '公交', icon: 'car' },
-  { id: 202, name: '地铁', icon: 'car' },
-  { id: 203, name: '打车', icon: 'car' },
-  { id: 204, name: '加油', icon: 'car' }
+// 分类数据
+const expenseCategories = [
+  { id: 1, name: '早餐' },
+  { id: 2, name: '午餐' },
+  { id: 3, name: '晚餐' },
+  { id: 4, name: '���食' },
+  { id: 5, name: '交通' },
+  { id: 6, name: '购物' },
+  { id: 7, name: '娱乐' },
+  { id: 8, name: '服饰' },
+  { id: 9, name: '日用' },
+  { id: 10, name: '医疗' },
+  { id: 11, name: '住房' },
+  { id: 12, name: '水电' },
+  { id: 13, name: '通讯' },
+  { id: 14, name: '学习' },
+  { id: 15, name: '运动' }
 ]
 
-// 常用收入分类
-const commonIncomeCategories = [
-  { id: 101, name: '月薪', icon: 'rmb-circle' },
-  { id: 102, name: '年终奖', icon: 'rmb-circle' },
-  { id: 201, name: '项目奖金', icon: 'rmb-circle' },
-  { id: 202, name: '绩效奖金', icon: 'rmb-circle' }
+const incomeCategories = [
+  { id: 101, name: '工资' },
+  { id: 102, name: '奖金' },
+  { id: 103, name: '兼职' },
+  { id: 104, name: '理财' },
+  { id: 105, name: '其他收入' }
 ]
 
-// 根据当前类型获取主分类
-const mainCategories = computed(() => {
-  return currentTab.value === 0 ? expenseCategories.main : incomeCategories.main
+// 当前显示的分类（前8个）
+const displayCategories = computed(() => {
+  const categories = form.value.type === 1 ? incomeCategories : expenseCategories
+  return categories.slice(0, 8)
 })
 
-// 根据当前类型和主分类获取子分类
-const currentSubCategories = computed(() => {
-  const categories = currentTab.value === 0 ? expenseCategories.sub : incomeCategories.sub
-  return categories[currentMainCategory.value] || []
-})
+const roleOptions = [
+  { value: 1, text: '个人' },
+  { value: 2, text: '公司' },
+  { value: 3, text: '家庭' }
+]
 
-// 根据当前类型获取常用分类
-const commonCategories = computed(() => {
-  return currentTab.value === 0 ? commonExpenseCategories : commonIncomeCategories
-})
+const platformOptions = [
+  { value: 1, text: '支付宝' },
+  { value: 2, text: '微信' },
+  { value: 3, text: '现金' },
+  { value: 4, text: '银行卡' }
+]
 
-// 添加选中分类的图标计算属性
-const selectedCategoryIcon = computed(() => {
-  if (!form.value.categoryId) return ''
-  // 先从常用分类中查找
-  const commonCategory = commonCategories.value.find(c => c.id === form.value.categoryId)
-  if (commonCategory) return commonCategory.icon || 'star'
-
-  // 从子分类中查找
-  for (const key in expenseCategories.sub) {
-    const category = expenseCategories.sub[key].find(c => c.id === form.value.categoryId)
-    if (category) return category.icon || 'star'
-  }
-  return 'star'
-})
-
-// 修改选择分类的方法
-const selectCategory = (category) => {
-  form.value.categoryId = category.id
-  selectedCategory.value = category.name
-}
-
-// 选择主分类
-const selectMainCategory = (id) => {
-  currentMainCategory.value = id
-}
-
-// 修改子分类选择的方法
-const selectSubCategory = (category) => {
-  form.value.categoryId = category.id
-  selectedCategory.value = category.name
-  closeCategoryPopup()
-}
-
-// 显示全部分类
-const showAllCategories = () => {
-  if (categoryPopup.value) {
-    categoryPopup.value.open()
+// 表单验证规则
+const rules = {
+  date: {
+    rules: [{ required: true, errorMessage: '请选择日期' }]
+  },
+  role: {
+    rules: [{ required: true, errorMessage: '请选择角色' }]
+  },
+  platform: {
+    rules: [{ required: true, errorMessage: '请选择平台' }]
   }
 }
 
-// 关闭分类弹出层
-const closeCategoryPopup = () => {
-  if (categoryPopup.value) {
-    categoryPopup.value.close()
-  }
-}
-
+// 金额输入处理
 const inputNumber = (num) => {
-  if (form.value.amount === '0' && num !== '.') {
+  if (form.value.amount === '' && num === '.') {
+    form.value.amount = '0.'
+  } else if (form.value.amount === '0' && num !== '.') {
     form.value.amount = num
+  } else if (num === '.' && form.value.amount.includes('.')) {
+    return
+  } else if (form.value.amount.includes('.') && form.value.amount.split('.')[1].length >= 2) {
+    return
   } else {
     form.value.amount += num
   }
@@ -325,76 +204,53 @@ const deleteNumber = () => {
   form.value.amount = form.value.amount.slice(0, -1)
 }
 
-// 表单验证
-const validateForm = () => {
-  if (!form.value.categoryId) {
-    uni.showToast({
-      title: '请选择分类',
-      icon: 'none'
-    })
-    return false
-  }
-  if (!form.value.amount || form.value.amount === '0') {
+// 表单提交
+const handleSubmit = async () => {
+  if (!form.value.amount || parseFloat(form.value.amount) === 0) {
     uni.showToast({
       title: '请输入金额',
       icon: 'none'
     })
-    return false
+    return
   }
-  if (!selectedMember.value) {
-    uni.showToast({ title: '请选择消费人', icon: 'none' })
-    return false
-  }
-  if (!selectedConsumeType.value) {
-    uni.showToast({ title: '请选择消费类型', icon: 'none' })
-    return false
-  }
-  return true
-}
-
-// 重置表单
-const resetForm = () => {
-  form.value = {
-    amount: '',
-    categoryId: '',
-    note: '',
-    date: new Date().toLocaleDateString()
-  }
-  selectedCategory.value = ''
-}
-
-// 保存并返回首页
-const handleSubmit = async () => {
-  if (!validateForm()) return
 
   try {
+    await formRef.value.validate()
+
     // TODO: 发送请求到后端
-    // const res = await api.saveBill(form.value)
+    console.log('提交的表单数据：', form.value)
 
     uni.showToast({
       title: '保存成功',
       icon: 'success'
     })
 
-    // 回首页
     setTimeout(() => {
       uni.navigateBack()
     }, 1500)
-  } catch (error) {
+  } catch (err) {
     uni.showToast({
-      title: '保存失败',
-      icon: 'error'
+      title: '请完善表单信息',
+      icon: 'none'
     })
   }
 }
 
-// 保存并继续记账
+// 保存并继续
 const saveAndContinue = async () => {
-  if (!validateForm()) return
+  if (!form.value.amount || parseFloat(form.value.amount) === 0) {
+    uni.showToast({
+      title: '请输入金额',
+      icon: 'none'
+    })
+    return
+  }
 
   try {
+    await formRef.value.validate()
+
     // TODO: 发送请求到后端
-    // const res = await api.saveBill(form.value)
+    console.log('提交的表单数据：', form.value)
 
     uni.showToast({
       title: '保存成功',
@@ -402,248 +258,236 @@ const saveAndContinue = async () => {
     })
 
     // 重置表单
-    resetForm()
-  } catch (error) {
+    form.value = {
+      amount: '',
+      type: form.value.type,
+      categoryId: '',
+      date: today,
+      role: form.value.role,
+      platform: form.value.platform,
+      remark: ''
+    }
+  } catch (err) {
     uni.showToast({
-      title: '保存失败',
-      icon: 'error'
+      title: '请完善表单信息',
+      icon: 'none'
     })
   }
 }
 
-const showCalculator = () => {
-  // 显示计算器
+const popup = ref(null)
+
+// 当前类型的所有分类
+const currentCategories = computed(() => {
+  return form.value.type === 1 ? incomeCategories : expenseCategories
+})
+
+// 显示全部分类
+const showAllCategories = () => {
+  popup.value.open()
 }
 
-// 打开日期选择器
-const openCalendar = () => {
-  showCalendar.value = true
-  console.log('openCalendar', showCalendar.value)
+// 选择分类
+const selectCategory = (item) => {
+  form.value.categoryId = item.id
+  popup.value.close()
 }
 
-// 添加切换标签的方法
-const switchTab = (index) => {
-  // 如果已经选中了分类，切换类型时需要清空选择
-  if (currentTab.value !== index && form.value.categoryId) {
-    form.value.categoryId = ''
-    selectedCategory.value = ''
-  }
-  currentTab.value = index
-}
-
-// 添加成员和消费类型数据
-const members = [
-  { id: 1, name: '爸爸' },
-  { id: 2, name: '妈妈' },
-  { id: 3, name: '我' }
-]
-
-const consumeTypes = [
-  { id: 1, name: '个人消费' },
-  { id: 2, name: '家庭开支' },
-  { id: 3, name: '其他支出' }
-]
-
-const selectedMember = ref(null)
-const selectedConsumeType = ref(null)
-
-const handleMemberChange = (e) => {
-  selectedMember.value = members[e.detail.value]
-}
-
-const handleTypeChange = (e) => {
-  selectedConsumeType.value = consumeTypes[e.detail.value]
-}
-
-// 弹出层关闭事件处理
-const onPopupChange = (e) => {
-  if (!e.show) {
-    closeCategoryPopup()
-  }
-}
-
-const datePopup = ref(null)
-
-// 打开日期选择弹窗
-const openDatePopup = () => {
-  datePopup.value.open()
-}
-
-// 关闭日期选择弹窗
-const closeDatePopup = () => {
-  datePopup.value.close()
-}
-
-// 修改日期选择处理函数
-const handleDateSelect = (e) => {
-  if (e.range && e.range[0]) {
-    form.value.date = formatDate(e.range[0])
-    closeDatePopup()
-  }
-}
-
-// 日期选择改变处理
-const onDateChange = (e) => {
-  form.value.date = new Date(e.detail.value).toLocaleDateString()
-}
-
-// 在其他方法的同级添加 goBack 方法
-const goBack = () => {
-  uni.navigateBack({
-    delta: 1
-  })
-}
+// 当前选中的分类
+const selectedCategory = computed(() => {
+  const categories = form.value.type === 1 ? incomeCategories : expenseCategories
+  return categories.find(item => item.id === form.value.categoryId)
+})
 </script>
 
 <style lang="scss">
 .container {
   min-height: 100vh;
-  background-color: #f5f5f5;
-  padding-bottom: env(safe-area-inset-bottom);
+  background-color: #fff;
 }
 
-.type-tabs {
-  padding: 20rpx 0;
-  position: relative;
-
-  .tabs-wrapper {
-    display: flex;
-    position: relative;
-    width: 200rpx; // 调整宽度以适应两个标签
-  }
-
-  .tab-item {
+.type-switch {
+  display: flex;
+  padding: 2rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+  
+  .type-item {
     flex: 1;
     text-align: center;
-    font-size: 32rpx;
+    padding: 20rpx 0;
+    font-size: 28rpx;
     color: #666;
-    padding: 16rpx 0;
     position: relative;
-    z-index: 1;
-    transition: all 0.3s ease;
-
+    
     &.active {
       color: #2878ff;
       font-weight: 500;
-    }
-  }
-
-  .tab-line {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 4rpx;
-    background: #2878ff;
-    transition: transform 0.3s cubic-bezier(0.645, 0.045, 0.355, 1);
-    border-radius: 4rpx;
-  }
-}
-
-.category-select {
-  margin: 30rpx 0;
-  font-size: 32rpx;
-  color: #333;
-
-  .category-info {
-    display: flex;
-    align-items: center;
-    gap: 12rpx;
-
-    text {
-      font-size: 32rpx;
-      color: #333;
-      font-weight: 500;
-    }
-  }
-}
-
-.amount-input {
-  margin: 20rpx 0 40rpx;
-
-  .currency {
-    font-size: 40rpx;
-    color: #333;
-    margin-right: 10rpx;
-  }
-
-  .amount {
-    font-size: 48rpx;
-    color: #333;
-    font-weight: 500;
-  }
-}
-
-.category-section {
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20rpx;
-
-    .more {
-      color: #999;
-      // font-size: 26rpx;
-    }
-  }
-
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 30rpx;
-    padding: 20rpx;
-
-    .category-item {
-      display: flex;
-      // flex-direction: row; // 改为水平布局
-      // align-items: center; // 垂直居中
-      // justify-content: center;
-      // padding: 12rpx;
-      // border-radius: 8rpx;
-
-      &.active {
-        background-color: rgba(40, 120, 255, 0.1); // 选中时的浅蓝色背景
-
-        // text {
-        //   color: #2878ff;
-        // }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40rpx;
+        height: 4rpx;
+        background: #2878ff;
+        border-radius: 2rpx;
       }
     }
   }
 }
 
-.form-item {
+.amount-input {
+  padding: 24rpx;
+  border-bottom: 1rpx solid #f5f5f5;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 30rpx 0;
-  border-bottom: 1rpx solid #eee;
-
-  .label {
+  
+  .selected-category {
     font-size: 28rpx;
-    color: #333;
+    color: #2878ff;
+    background: rgba(40, 120, 255, 0.1);
+    padding: 8rpx 20rpx;
+    border-radius: 24rpx;
   }
-
-  .value {
+  
+  .amount-section {
     display: flex;
-    align-items: center;
-    gap: 10rpx;
-    font-size: 28rpx;
-    color: #666;
-  }
-
-  .remark-input {
-    flex: 1;
-    font-size: 28rpx;
-    color: #333;
-    text-align: right;
+    align-items: baseline;
+    
+    .currency {
+      font-size: 28rpx;
+      color: #333;
+      margin-right: 4rpx;
+    }
+    
+    .amount {
+      font-size: 40rpx;
+      color: #333;
+      font-weight: 500;
+      font-family: 'DIN Alternate', sans-serif;
+    }
   }
 }
 
-.bottom-text {
-  text-align: center;
-  padding: 30rpx 0;
-  font-size: 28rpx;
-  color: #666;
+.category-section {
+  padding: 20rpx 24rpx;
+  border-bottom: 1rpx solid #f5f5f5;
+  
+  .quick-categories {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20rpx;
+  }
+  
+  .category-item {
+    height: 72rpx;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f7fa;
+    border-radius: 8rpx;
+    font-size: 28rpx;
+    color: #333;
+    
+    &.active {
+      background: rgba(40, 120, 255, 0.1);
+      color: #2878ff;
+      font-weight: 500;
+    }
+  }
+  
+  .more-btn {
+    text-align: center;
+    color: #666;
+    font-size: 26rpx;
+    padding: 24rpx 0 8rpx;
+  }
+}
+
+.form-section {
+  :deep(.uni-forms-item) {
+    padding: 0 24rpx;
+    
+    .uni-forms-item__inner {
+      padding: 24rpx 0;
+      border-bottom: 1rpx solid #f5f5f5;
+      display: flex;
+      align-items: center;
+    }
+
+    .uni-forms-item__label {
+      color: #666;
+      font-size: 28rpx;
+      padding-right: 12rpx;
+      width: auto;
+      min-width: 112rpx;
+    }
+
+    .uni-forms-item__content {
+      flex: 1;
+    }
+
+    // 统一输入框样式
+    .uni-easyinput__content,
+    .uni-data-select {
+      border: none;
+      
+      .uni-easyinput__input,
+      .uni-data-select__input-text {
+        color: #333;
+        font-size: 28rpx;
+      }
+    }
+    
+    // 统一placeholder样式
+    .uni-easyinput__placeholder-class,
+    .input-placeholder {
+      color: #999;
+      font-size: 28rpx;
+    }
+    
+    // 统一下拉箭头颜色
+    .uni-select__input-box {
+      height: 44rpx;
+      line-height: 44rpx;
+      
+      .uni-select__input-text {
+        color: #333;
+        font-size: 28rpx;
+      }
+      
+      .uni-icons {
+        color: #999;
+      }
+    }
+    
+    // 统一日期选择器样式
+    .uni-date {
+      .uni-date-editor {
+        height: 44rpx;
+        line-height: 44rpx;
+        
+        .uni-date-editor--x {
+          color: #333;
+          font-size: 28rpx;
+        }
+        
+        .uni-icons {
+          color: #999;
+        }
+      }
+    }
+  }
+  
+  // 去除最后一项的边框
+  .uni-forms-item:last-child {
+    .uni-forms-item__inner {
+      border-bottom: none;
+    }
+  }
 }
 
 .number-keyboard {
@@ -651,33 +495,35 @@ const goBack = () => {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #f5f5f5;
-  padding: 10rpx;
+  background: #f5f7fa;
+  padding: 8rpx;
 
   .keyboard-row {
     display: flex;
-    gap: 6rpx;
-    margin-bottom: 6rpx;
+    gap: 8rpx;
+    margin-bottom: 8rpx;
 
     .key {
       flex: 1;
-      height: 80rpx;
+      height: 88rpx;
       background: #fff;
-      border-radius: 6rpx;
+      border-radius: 8rpx;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 32rpx;
       color: #333;
+      font-family: 'DIN Alternate', sans-serif;
 
       &:active {
-        opacity: 0.7;
+        background: #f5f7fa;
       }
 
       &.save {
-        background: #f0f7ff;
+        font-size: 28rpx;
         color: #2878ff;
-        font-size: 26rpx;
+        background: #fff;
+        font-family: system-ui;
 
         &.main {
           background: #2878ff;
@@ -685,187 +531,58 @@ const goBack = () => {
         }
 
         &:active {
-          opacity: 0.8;
+          opacity: 0.9;
         }
       }
     }
-  }
-}
-
-.category-popup {
-  height: 85vh;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 100;
-
-  .popup-header {
-    background: #fff;
-    display: flex;
-    align-items: center;
-    padding: 24rpx 30rpx;
-    border-bottom: 1rpx solid #f5f5f5;
-
-    .left,
-    .right {
-      width: 80rpx;
-      display: flex;
-      align-items: center;
-    }
-
-    .center {
-      flex: 1;
-      text-align: center;
-      font-size: 32rpx;
-      font-weight: 500;
-    }
-  }
-
-  .category-content {
-    background: #fff;
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-
-    .main-category {
-      width: 160rpx;
-      height: 100%;
-      background: #f8f9fa;
-
-      &-item {
-        position: relative;
-        padding: 32rpx 20rpx;
-        text-align: center;
-        font-size: 28rpx;
-        color: #666;
-        transition: all 0.3s;
-
-        .active-bar {
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%) scaleY(0);
-          width: 6rpx;
-          height: 36rpx;
-          background: #2878ff;
-          border-radius: 6rpx;
-          transition: transform 0.3s;
-        }
-
-        &.active {
-          color: #2878ff;
-          font-weight: 500;
-          background: #fff;
-
-          .active-bar {
-            transform: translateY(-50%) scaleY(1);
-          }
-        }
-      }
-    }
-
-    .sub-category {
-      flex: 1;
-      height: 100%;
-      background: #fff;
-
-      &-list {
-        padding: 20rpx;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20rpx;
-      }
-
-      &-item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        padding: 16rpx;
-        transition: all 0.3s;
-
-        text {
-          margin-left: 12rpx;
-          font-size: 26rpx;
-          color: #333;
-          transition: all 0.3s;
-        }
-
-        &.active {
-          background: rgba(40, 120, 255, 0.1);
-          border-radius: 8rpx;
-
-          text {
-            color: #2878ff;
-            font-weight: 500;
-          }
-        }
-
-        &:active {
-          transform: scale(0.95);
-        }
-      }
-    }
-  }
-}
-
-// 添加过渡动画样式
-.slide-enter-active,
-.slide-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateY(-100%);
-}
-
-.slide-enter-to,
-.slide-leave-from {
-  transform: translateY(0);
-}
-
-.u-popup {
-  background: #fff !important;
-}
-
-.u-popup__content {
-  background: #fff !important;
-}
-
-// 添加内容切换动画
-.category-section {
-  transition: opacity 0.3s ease;
-
-  &.fade-enter-active,
-  &.fade-leave-active {
-    transition: opacity 0.3s ease;
-  }
-
-  &.fade-enter-from,
-  &.fade-leave-to {
-    opacity: 0;
   }
 }
 
 .popup-content {
   background-color: #fff;
-
+  border-radius: 24rpx 24rpx 0 0;
+  padding-bottom: env(safe-area-inset-bottom);
+  
   .popup-header {
-    padding: 20rpx 30rpx;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #eee;
-
-    text {
+    padding: 24rpx;
+    border-bottom: 1rpx solid #f5f5f5;
+    
+    .title {
       font-size: 32rpx;
+      color: #333;
       font-weight: 500;
     }
-
-    .close-btn {
+    
+    .close {
+      font-size: 28rpx;
+      color: #666;
       padding: 10rpx;
+    }
+  }
+  
+  .category-list {
+    max-height: 60vh;
+    padding: 0 24rpx;
+  }
+  
+  .popup-item {
+    height: 100rpx;
+    display: flex;
+    align-items: center;
+    font-size: 30rpx;
+    color: #333;
+    border-bottom: 1rpx solid #f5f5f5;
+    
+    &.active {
+      color: #2878ff;
+      font-weight: 500;
+    }
+    
+    &:last-child {
+      border-bottom: none;
     }
   }
 }
