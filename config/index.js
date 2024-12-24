@@ -12,16 +12,8 @@ const devConfig = {
 const config = devConfig
 
 // API路径配置
-export const API = {
-    baseUrl: config.baseUrl,
-    login: `${config.baseUrl}/login`,
-    // 在这里添加其他API路径
-    bills: {
-        list: `${config.baseUrl}/bills`,
-        create: `${config.baseUrl}/bills`,
-        update: `${config.baseUrl}/bills`,
-        delete: `${config.baseUrl}/bills`,
-    }
+export const baseConfig = {
+    baseUrl: config.baseUrl
 }
 
 export default config 

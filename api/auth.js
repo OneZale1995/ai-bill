@@ -1,12 +1,11 @@
 import request from './request'
-import { API } from '@/config/index'
 
 // 登录服务
 export const authService = {
   // 微信登录
   async wxLogin(code) {
     return request({
-      url: API.baseUrl + '/accountUser/wechatMini/login?code=' + code,
+      url: '/accountUser/wechatMini/login?code=' + code,
       method: 'POST',
       data: { code }
     })

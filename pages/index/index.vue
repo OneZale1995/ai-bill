@@ -1,9 +1,9 @@
 <template>
   <view class="container">
-    <page-nav :title="currentAccount"></page-nav>
+    <page-nav :title="currentAccount?.name || '账单'" />
 
     <!-- 月度统计 -->
-    <view class="month-summary">
+    <view class="month-summary" v-if="!isLoading && !isEmpty">
       <view class="balance">
         <text class="label">本月结余</text>
         <text class="amount" :class="{ 'negative': monthlyBalance < 0 }">¥{{ monthlyBalance }}</text>
@@ -21,7 +21,7 @@
     </view>
 
     <!-- 账单列表 -->
-    <view class="bill-list" v-if="bills.length > 0">
+    <view v-if="!isLoading && !isEmpty" class="bill-list">
       <view v-for="(group, date) in groupedBills" :key="date">
         <view class="date-header">
           <view class="date-info">
@@ -36,14 +36,14 @@
               <category-icon :type="bill.type" :text="bill.note" />
               <view class="bill-details">
                 <view class="primary-info">
-                  <text class="category-name">{{ bill.note }}</text>
+                  <text class="category-name">{{ bill.note || '未命名' }}</text>
                   <text class="amount" :class="{ 'income': bill.type === 'income' }">
-                    {{ bill.type === 'income' ? '+' : '-' }}{{ bill.amount }}
+                    {{ bill.type === 'income' ? '+' : '-' }}{{ bill.amount || 0 }}
                   </text>
                 </view>
                 <view class="secondary-info">
-                  <text class="time">{{ bill.time }}</text>
-                  <text class="payment-method">{{ bill.paymentMethod }}</text>
+                  <text class="time">{{ bill.time || '未知时间' }}</text>
+                  <text class="payment-method">{{ bill.paymentMethod || '未指定' }}</text>
                 </view>
               </view>
             </view>
@@ -52,328 +52,129 @@
       </view>
     </view>
 
+    <!-- 加载中状态 -->
+    <view v-else-if="isLoading" class="loading-state">
+      <text class="loading-text">加载中...</text>
+    </view>
+
+    <!-- 空状态 -->
     <view v-else class="empty-state">
-      <image src="/static/images/empty.svg" mode="aspectFit" class="empty-image"></image>
-      <text class="empty-text">暂无账单</text>
+      <uni-notice-bar single text="暂无账单，赶快添加一笔吧！" color="#007AFF" background-color="#F0F8FF" />
     </view>
 
     <!-- 添加按钮 -->
     <view class="add-btn" @click="goToAdd">
-      <uni-icons type="plusempty" size="28" color="#FFFFFF"></uni-icons>
+      <uni-icons type="plusempty" size="28" color="#FFFFFF" />
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import CategoryIcon from '@/components/category-icon.vue'
-import { handleWxLogin } from '@/api/auth'
+import { ref, computed, onMounted, reactive, toRefs } from 'vue';
+import CategoryIcon from '@/components/category-icon.vue';
+import { handleWxLogin } from '@/api/auth';
+import { billService } from '@/api/bill';
+import { billRecordsService } from '@/api/billRecords';
+
+const currentAccount = ref({});
+const billRecordList = ref([]);
+const total = ref(0);
+const loading = ref(false);
+const monthlyBalance = ref(0);
+const monthlyIncome = ref(0);
+const monthlyExpense = ref(0);
+
+const data = reactive({
+  queryParams: {
+    page: 1,
+    pageNum: 10,
+    isAsc: 'desc',
+    orderByColumn: 'createTime',
+    billId: undefined,
+  },
+});
+const { queryParams } = toRefs(data);
+
+/** 计算页面状态 */
+const isLoading = computed(() => loading.value);
+const isEmpty = computed(() => !isLoading.value && (billRecordList.value?.length || 0) === 0);
+
+/** 查询账单记录列表 */
+async function getList() {
+  try {
+    loading.value = true;
+    const response = await billRecordsService.getBillRecordsPage(queryParams.value);
+    billRecordList.value = response?.records || [];
+    total.value = response?.total || 0;
+  } catch (error) {
+    console.error('获取账单记录列表失败：', error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+/** 跳转到添加页面 */
+function goToAdd() {
+  uni.navigateTo({
+    url: '/pages/add/index',
+  });
+}
+
+/** 获取账户账单信息 */
+async function getAccountBills() {
+  try {
+    const response = await billService.getBills();
+    const accounts = response?.data?.records || [];
+    currentAccount.value = accounts.find((account) => account.isDefault) || {};
+    queryParams.value.billId = currentAccount.value.id;
+    await getList();
+  } catch (error) {
+    console.error('获取账户账单信息失败：', error);
+  }
+}
 
 onMounted(async () => {
-  const isLoggedIn = uni.getStorageSync('token')
-  if (!isLoggedIn) {
-    await handleWxLogin()
-  }
-})
-
-// Mock 数据
-const mockBills = [
-  { id: 1, type: 'expense', amount: 25.5, note: '午餐', time: '12:30', date: '2024-03-15', category: 'food', paymentMethod: '微信' },
-  { id: 2, type: 'expense', amount: 35.0, note: '晚餐', time: '18:45', date: '2024-03-15', category: 'food', paymentMethod: '支付宝' },
-  { id: 3, type: 'income', amount: 5000, note: '工资', time: '09:00', date: '2024-03-15', category: 'salary', paymentMethod: '银行转账' },
-  { id: 4, type: 'expense', amount: 15.5, note: '早餐', time: '08:30', date: '2024-03-14', category: 'food', paymentMethod: '微信' },
-  { id: 5, type: 'expense', amount: 199, note: '衣服', time: '15:20', date: '2024-03-14', category: 'clothing', paymentMethod: '支付宝' },
-]
-
-// 账本数据
-const accounts = [
-  { id: 1, name: '日常账本' },
-  { id: 2, name: '旅行账本' },
-  { id: 3, name: '生意账本' },
-]
-const currentAccount = ref('日常账本')
-const bills = ref(mockBills)
-
-// 按日期分组的账单
-const groupedBills = computed(() => {
-  const groups = {}
-  bills.value.forEach(bill => {
-    if (!groups[bill.date]) {
-      groups[bill.date] = []
+  try {
+    const token = uni.getStorageSync('token');
+    if (!token) {
+      await handleWxLogin();
     }
-    groups[bill.date].push(bill)
-  })
-  return groups
-})
-
-// 计算月度收支
-const monthlyExpense = computed(() => {
-  return bills.value
-    .filter(bill => bill.type === 'expense')
-    .reduce((sum, bill) => sum + bill.amount, 0)
-    .toFixed(2)
-})
-
-const monthlyIncome = computed(() => {
-  return bills.value
-    .filter(bill => bill.type === 'income')
-    .reduce((sum, bill) => sum + bill.amount, 0)
-    .toFixed(2)
-})
-
-const monthlyBalance = computed(() => {
-  return (Number(monthlyIncome.value) - Number(monthlyExpense.value)).toFixed(2)
-})
-
-// 计算每日支出
-const getDayExpense = (dayBills) => {
-  return dayBills
-    .filter(bill => bill.type === 'expense')
-    .reduce((sum, bill) => sum + bill.amount, 0)
-    .toFixed(2)
-}
-
-const getDayIncome = (dayBills) => {
-  return dayBills
-    .filter(bill => bill.type === 'income')
-    .reduce((sum, bill) => sum + bill.amount, 0)
-    .toFixed(2)
-}
-
-// 格式化日期
-const formatDate = (date) => {
-  return date.replace(/-/g, '.')
-}
-
-// 跳转到添加页面
-const goToAdd = () => {
-  uni.navigateTo({
-    url: '/pages/add/index'
-  })
-}
+    await getAccountBills();
+  } catch (error) {
+    console.error('初始化失败：', error);
+  }
+});
 </script>
 
 <style lang="scss">
-:deep(.uni-nav-bar__header) {
-  .uni-nav-bar__header-container {
-    justify-content: center;
+@import '@/styles/pages/index.scss';
 
-    .uni-nav-bar__header-btns {
-      display: none;
-    }
-
-    .uni-nav-bar__header-container-inner {
-      flex: none;
-      justify-content: center;
-
-      .uni-nav-bar__content-title {
-        color: #FFFFFF;
-      }
-    }
-  }
-}
-
-.nav-title {
+.loading-state {
   display: flex;
-  align-items: center;
   justify-content: center;
-  color: #fff;
-  font-size: 36rpx;
-  font-weight: 500;
-  width: 100%;
-  text-align: center;
-}
-
-.nav-right {
-  display: flex;
   align-items: center;
-}
-
-.month-summary {
-  background: linear-gradient(180deg, #2878ff 0%, #2878ff 100%);
-  padding: 20rpx 32rpx; // 减小padding
-  color: #fff;
-
-  .balance {
-    text-align: center;
-    margin-bottom: 16rpx; // 减小margin
-
-    .label {
-      font-size: 24rpx; // 减小字体
-      opacity: 0.9;
-    }
-
-    .amount {
-      display: block;
-      font-size: 48rpx; // 减小字体
-      font-weight: 500;
-      margin-top: 4rpx;
-      font-family: 'DIN Alternate', sans-serif;
-
-      &.negative {
-        color: #ff4d4f;
-      }
-    }
-  }
-
-  .details {
-    display: flex;
-    justify-content: space-around;
-
-    .income,
-    .expense {
-      text-align: center;
-
-      .label {
-        font-size: 24rpx;
-        opacity: 0.9;
-      }
-
-      .value {
-        display: block;
-        font-size: 28rpx;
-        margin-top: 4rpx;
-        font-family: 'DIN Alternate', sans-serif;
-      }
-    }
-  }
-}
-
-.bill-list {
-  background: #fff;
-
-  .date-header {
-    padding: 20rpx 32rpx;
-    background: #f8f8f8;
-
-    .date-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 28rpx;
-      color: #666;
-
-      .date {
-        font-weight: 500;
-      }
-
-      .summary {
-        font-size: 24rpx;
-        color: #999;
-      }
-    }
-  }
-
-  .bill-items {
-    padding: 0 32rpx;
-  }
-
-  .bill-item {
-    padding: 16rpx 0;
-    border-bottom: 1rpx solid #f5f5f5;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    .bill-info {
-      display: flex;
-      align-items: center;
-    }
-
-    .category-icon {
-      width: 64rpx;
-      height: 64rpx;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 20rpx;
-
-      &.income {
-        background-color: #2878ff;
-      }
-
-      &.expense {
-        background-color: #ff9c6e;
-      }
-
-      .category-text {
-        color: #fff;
-        font-size: 26rpx;
-      }
-    }
-
-    .bill-details {
-      flex: 1;
-
-      .primary-info {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 4rpx;
-
-        .category-name {
-          font-size: 28rpx;
-          color: #333;
-        }
-
-        .amount {
-          font-size: 28rpx;
-          color: #ff4d4f;
-          font-family: 'DIN Alternate', sans-serif;
-
-          &.income {
-            color: #2878ff;
-          }
-        }
-      }
-
-      .secondary-info {
-        display: flex;
-        justify-content: space-between;
-        font-size: 22rpx;
-        color: #999;
-
-        .payment-method {
-          color: #666;
-        }
-      }
-    }
-  }
-}
-
-.add-btn {
-  position: fixed;
-  right: 32rpx;
-  bottom: calc(32rpx + env(safe-area-inset-bottom));
-  width: 100rpx;
-  height: 100rpx;
-  background-color: #2878ff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 8rpx rgba(40, 120, 255, 0.2);
-  z-index: 100;
+  height: 100%;
+  font-size: 16px;
+  color: #999;
 }
 
 .empty-state {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  padding: 120rpx 32rpx;
+  align-items: center;
+  height: 100%;
+}
 
-  .empty-image {
-    width: 240rpx;
-    height: 240rpx;
-    margin-bottom: 32rpx;
-  }
-
-  .empty-text {
-    font-size: 28rpx;
-    color: #999;
-  }
+.add-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background-color: #007AFF;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

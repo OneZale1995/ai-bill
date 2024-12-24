@@ -1,141 +1,205 @@
-.container {
-  min-height: 100vh;
-  background: #f8fafc;
-  padding-bottom: 120rpx;
-}
+:deep(.uni-nav-bar__header) {
+  .uni-nav-bar__header-container {
+    justify-content: center;
 
-.nav-bar {
-  background: linear-gradient(135deg, #2878ff, #1e88e5);
-  padding: 88rpx 32rpx 20rpx;
-  color: #fff;
-  
-  .nav-title {
-    font-size: 36rpx;
-    font-weight: 500;
+    .uni-nav-bar__header-btns {
+      display: none;
+    }
+
+    .uni-nav-bar__header-container-inner {
+      flex: none;
+      justify-content: center;
+
+      .uni-nav-bar__content-title {
+        color: #FFFFFF;
+      }
+    }
   }
 }
 
-.month-summary {
-  background: linear-gradient(135deg, #2878ff, #1e88e5);
-  padding: 20rpx 0 40rpx;
-  margin-bottom: 20rpx;
+.nav-title {
   display: flex;
-  
-  .amount-box {
-    flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 500;
+  width: 100%;
+  text-align: center;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+}
+
+.month-summary {
+  background: linear-gradient(180deg, #2878ff 0%, #2878ff 100%);
+  padding: 20rpx 32rpx; // 减小padding
+  color: #fff;
+
+  .balance {
     text-align: center;
-    padding: 10rpx 0;
-    position: relative;
-    
-    &:first-child::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 1rpx;
-      height: 30rpx;
-      background: rgba(255, 255, 255, 0.2);
-    }
-    
+    margin-bottom: 16rpx; // 减小margin
+
     .label {
-      font-size: 24rpx;
-      color: rgba(255, 255, 255, 0.85);
-      margin-bottom: 6rpx;
-      display: block;
+      font-size: 24rpx; // 减小字体
+      opacity: 0.9;
     }
-    
+
     .amount {
-      font-size: 32rpx;
-      color: #fff;
-      font-weight: 500;
-      font-family: 'DIN Alternate', sans-serif;
       display: block;
+      font-size: 48rpx; // 减小字体
+      font-weight: 500;
+      margin-top: 4rpx;
+      font-family: 'DIN Alternate', sans-serif;
+
+      &.negative {
+        color: #ff4d4f;
+      }
+    }
+  }
+
+  .details {
+    display: flex;
+    justify-content: space-around;
+
+    .income,
+    .expense {
+      text-align: center;
+
+      .label {
+        font-size: 24rpx;
+        opacity: 0.9;
+      }
+
+      .value {
+        display: block;
+        font-size: 28rpx;
+        margin-top: 4rpx;
+        font-family: 'DIN Alternate', sans-serif;
+      }
     }
   }
 }
 
 .bill-list {
-  padding: 0 30rpx;
-  
+  background: #fff;
+
   .date-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20rpx 0;
-    
-    .date {
+    padding: 20rpx 32rpx;
+    background: #f8f8f8;
+
+    .date-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-size: 28rpx;
       color: #666;
-    }
-    
-    .day-amount {
-      font-size: 24rpx;
-      color: #999;
+
+      .date {
+        font-weight: 500;
+      }
+
+      .summary {
+        font-size: 24rpx;
+        color: #999;
+      }
     }
   }
-  
+
+  .bill-items {
+    padding: 0 32rpx;
+  }
+
   .bill-item {
-    background: #fff;
-    border-radius: 12rpx;
-    padding: 24rpx;
-    margin-bottom: 20rpx;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
+    padding: 16rpx 0;
+    border-bottom: 1rpx solid #f5f5f5;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
     .bill-info {
       display: flex;
       align-items: center;
-      
-      .icon-wrapper {
-        width: 80rpx;
-        height: 80rpx;
-        background: #f5f7fa;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 20rpx;
-        
-        .iconfont {
-          font-size: 40rpx;
-          
-          &.icon-income {
-            color: #00b578;
-          }
-          
-          &.icon-expense {
-            color: #ff4d4f;
-          }
-        }
+    }
+
+    .category-icon {
+      width: 64rpx;
+      height: 64rpx;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 20rpx;
+
+      &.income {
+        background-color: #2878ff;
       }
-      
-      .bill-details {
-        .bill-note {
-          font-size: 28rpx;
-          color: #333;
-          margin-bottom: 4rpx;
-          display: block;
-        }
-        
-        .bill-time {
-          font-size: 24rpx;
-          color: #999;
-        }
+
+      &.expense {
+        background-color: #ff9c6e;
+      }
+
+      .category-text {
+        color: #fff;
+        font-size: 26rpx;
       }
     }
-    
-    .bill-amount {
-      font-size: 32rpx;
-      color: #ff4d4f;
-      font-family: 'DIN Alternate', sans-serif;
-      
-      &.income {
-        color: #00b578;
+
+    .bill-details {
+      flex: 1;
+
+      .primary-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4rpx;
+
+        .category-name {
+          font-size: 28rpx;
+          color: #333;
+        }
+
+        .amount {
+          font-size: 28rpx;
+          color: #ff4d4f;
+          font-family: 'DIN Alternate', sans-serif;
+
+          &.income {
+            color: #2878ff;
+          }
+        }
+      }
+
+      .secondary-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 22rpx;
+        color: #999;
+
+        .payment-method {
+          color: #666;
+        }
       }
     }
   }
+}
+
+.add-btn {
+  position: fixed;
+  right: 32rpx;
+  bottom: calc(32rpx + env(safe-area-inset-bottom));
+  width: 100rpx;
+  height: 100rpx;
+  background-color: #2878ff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 8rpx rgba(40, 120, 255, 0.2);
+  z-index: 100;
 }
 
 .empty-state {
@@ -143,36 +207,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60rpx;
-  
+  padding: 120rpx 32rpx;
+
   .empty-image {
     width: 240rpx;
     height: 240rpx;
-    margin-bottom: 20rpx;
+    margin-bottom: 32rpx;
   }
-  
+
   .empty-text {
     font-size: 28rpx;
     color: #999;
-  }
-}
-
-.add-btn {
-  position: fixed;
-  right: 40rpx;
-  bottom: 40rpx;
-  width: 100rpx;
-  height: 100rpx;
-  background: linear-gradient(135deg, #2878ff, #1e88e5);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(40, 120, 255, 0.35);
-  
-  .add-icon {
-    color: #fff;
-    font-size: 48rpx;
-    font-weight: 300;
   }
 }
