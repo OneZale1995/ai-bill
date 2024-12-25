@@ -17,13 +17,23 @@
 		{
 			"path": "pages/statistics/index",
 			"style": {
-				"navigationBarTitleText": "统计"
+				"navigationBarTitleText": "统计",
+				"navigationStyle": "custom"
+				
 			}
 		},
 		{
 			"path": "pages/mine/index",
 			"style": {
-				"navigationBarTitleText": "我的"
+				"navigationBarTitleText": "我的",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/mine/bill",
+			"style": {
+				"navigationBarTitleText": "账本管理",
+				"navigationStyle": "custom"
 			}
 		}
 	],

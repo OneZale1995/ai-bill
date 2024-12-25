@@ -2,39 +2,10 @@
 	<view class="container">
 		<!-- 顶部导航栏 -->
 		<page-nav title="我的"></page-nav>
+		<uni-list>
+			<uni-list-item showArrow :to="`./bill`" @click="onClick" title="账本管理"></uni-list-item>
+		</uni-list>
 
-		<uni-section title="账本管理" type="line">
-			<uni-card title="默认账本" extra="个人">
-				<text>点击进入分类管理</text>
-				<view slot="actions" class="card-actions">
-					<view class="card-actions-item" @click="actionsClick('分享')">
-						<uni-icons type="pengyouquan" size="18" color="#999"></uni-icons>
-						<text class="card-actions-item-text">邀请好友</text>
-					</view>
-					<view class="card-actions-item" @click="actionsClick('点赞')">
-						<uni-icons type="heart" size="18" color="#999"></uni-icons>
-						<text class="card-actions-item-text">设为默认</text>
-					</view>
-					<view class="card-actions-item" @click="actionsClick('评论')">
-						<uni-icons type="gear" size="18" color="#999"></uni-icons>
-						<text class="card-actions-item-text">编辑</text>
-					</view>
-				</view>
-			</uni-card>
-		</uni-section>
-
-
-		<!-- 创建账本弹窗 -->
-		<uni-popup ref="createBookPopup" type="center" :mask-click="false">
-			<view class="popup-content">
-				<text class="popup-title">创建家庭账本</text>
-				<uni-easyinput v-model="newBookName" placeholder="请输入账本名称" clearable maxlength="20" class="input" />
-				<view class="popup-btns">
-					<view class="btn btn-default" @click="closePopup">取消</view>
-					<view class="btn btn-primary" @click="createBook">创建</view>
-				</view>
-			</view>
-		</uni-popup>
 	</view>
 </template>
 

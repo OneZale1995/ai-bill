@@ -42,7 +42,7 @@ const request = (options) => {
                 url: '/pages/index/index'
               })
             }
-            uni.showToast({ title: res.data.message || '请求失败', icon: 'none' });
+            uni.showToast({ title: res.data.msg || '请求失败', icon: 'none' });
             reject(res.data);
           }
         } else {
