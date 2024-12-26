@@ -1,5 +1,5 @@
 <template>
-    <view>
+    <view class="container">
         <!-- 顶部导航栏 -->
         <page-nav title="账本管理" showBack="true"></page-nav>
         <uni-row class="demo-uni-row" @click="addBill">
@@ -11,12 +11,9 @@
         <uni-row class="demo-uni-row" v-for="(bill, index) in bills" :key="bill.id">
             <uni-card :is-shadow="false">
                 <template v-slot:title>
-                    <uni-list v-if="!bill.isDefault">
+                    <uni-list>
                         <uni-list-item :show-switch="true" :switchChecked="bill.isDefault"
-                            @switchChange="updateBefault(bill)" :title="bill.name" />
-                    </uni-list>
-                    <uni-list v-else>
-                        <uni-list-item :title="bill.name" note="默认账本" />
+                            @switchChange="updateBefault(bill)" :title="`${bill.name}-${getBillType(bill.type)}`" :disabled="bill.isDefault" />
                     </uni-list>
                 </template>
                 <view slot="actions" class="card-actions">
@@ -24,11 +21,11 @@
                         <uni-icons type="personadd-filled" size="18" color="#999"></uni-icons>
                         <text class="card-actions-item-text">邀请好友</text>
                     </view>
-                    <view class="card-actions-item" @click="actionsClick('编辑')">
+                    <view class="card-actions-item" @click="editBill(bill)">
                         <uni-icons type="gear-filled" size="18" color="#999"></uni-icons>
                         <text class="card-actions-item-text">编辑</text>
                     </view>
-                    <view class="card-actions-item" @click="deleteBill(bill.id)">
+                    <view class="card-actions-item" :disabled="bill.isDefault" @click="deleteBill(bill.id)">
                         <uni-icons type="trash" size="18" color="#999"></uni-icons>
                         <text class="card-actions-item-text">删除</text>
                     </view>
@@ -82,8 +79,11 @@ const defaultTypes = [
     { text: '否', value: false }
 ];
 
+function getBillType(type) {
+    return billTypes.find(item => item.value === type)?.text || '';
+}   
+
 function addBill() {
-    console.log(form.value);
     if (form.value) {
         form.value.clearValidate();
     }
@@ -93,8 +93,20 @@ function addBill() {
     }
 }
 
+function editBill(bill) {
+    popupTitle.value = "编辑账本";
+    console.log(bill);
+    // 直接更新 currentBill 对象的每个字段
+    Object.assign(currentBill, bill);
+    if (popup.value) {
+        popup.value.open();
+    }
+}
+
 function closePopup() {
-    popup.value.close();
+    if(popup.value){
+        popup.value.close();
+    }
 }
 
 async function saveBill() {
@@ -102,7 +114,11 @@ async function saveBill() {
         if (form.value) {
             await form.value.validate();
         }
-        await billService.createBill(currentBill);
+        if (currentBill.id) {
+            await billService.updateBill(currentBill);
+        } else {
+            await billService.createBill(currentBill);
+        }
         // 弹窗提示保存成功
         uni.showToast({
             title: '保存成功',
@@ -169,6 +185,13 @@ async function getAccountBills() {
         const response = await billService.getBills();
         const billList = response?.data?.records || [];
         bills.value = billList;
+        // 设置默认账本
+        if (billList.length > 0) {
+            const defaultBill = billList.find(item => item.isDefault);
+            if (defaultBill) {
+                uni.setStorageSync('defaultBillId', defaultBill.id);
+            }
+        }
     } catch (error) {
         console.error('获取账户账单信息失败：', error);
     }
@@ -204,35 +227,10 @@ onMounted(() => {
     margin-left: 5px;
 }
 
-.popup-content {
-    padding: 20px;
-    background-color: #fff;
-    width: 300px;
-    /* 调整宽度 */
-    max-width: 600px;
-    /* 设置最大宽度 */
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
 
-.popup-title {
-    font-size: 20px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 30px;
-}
 
-.uni-forms-item {
-    margin-bottom: 15px;
-}
 
-.button-container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
-}
 
-.button {
-    width: 48%;
-}
+
+
 </style>

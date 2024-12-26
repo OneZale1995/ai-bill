@@ -9,5 +9,5 @@ export function createApp() {
 
 <style lang="scss">
 @import './styles/common.scss';
-@import '@/uni_modules/uni-scss/index.scss';
+@import './uni_modules/uni-scss/index.scss';
 </style>

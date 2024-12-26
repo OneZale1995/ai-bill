@@ -22,9 +22,9 @@ export const billService = {
   },
 
   // 更新账单
-  async updateBill(id, data) {
+  async updateBill(data) {
     return request({
-      url: `/bill/${id}`,
+      url:  module + `/updateBill`,
       method: 'POST',
       data
     })

@@ -126,6 +126,18 @@ async function getAccountBills() {
     const response = await billService.getBills();
     const accounts = response?.data?.records || [];
     currentAccount.value = accounts.find((account) => account.isDefault) || {};
+    if(!currentAccount.value.id) {
+      uni.showToast({
+        title: '请先添加账本',
+        icon: 'none',
+      });
+      uni.navigateTo({
+        url: '/pages/mine/bill',
+      });
+      return;
+    }else{
+      uni.setStorageSync('defaultBillId', currentAccount.value.id);
+    }
     queryParams.value.billId = currentAccount.value.id;
     await getList();
   } catch (error) {

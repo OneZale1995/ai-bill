@@ -35,6 +35,13 @@
 				"navigationBarTitleText": "账本管理",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/mine/category",
+			"style": {
+				"navigationBarTitleText": "账单分类管理",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"globalStyle": {
