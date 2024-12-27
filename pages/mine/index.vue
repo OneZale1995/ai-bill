@@ -6,8 +6,8 @@
 			<uni-list>
 				<uni-list-item showArrow :to="`./bill`" @click="onClick" title="账本管理"></uni-list-item>
 				<uni-list-item showArrow :to="`./category`" @click="onClick" title="账单分类管理"></uni-list-item>
-				<uni-list-item showArrow :to="`./bill`" @click="onClick" title="消费角色管理"></uni-list-item>
-				<uni-list-item showArrow :to="`./bill`" @click="onClick" title="平台管理"></uni-list-item>
+				<uni-list-item showArrow :to="`./billRole`" @click="onClick" title="消费角色管理"></uni-list-item>
+				<uni-list-item showArrow :to="`./billPlatform`" @click="onClick" title="消费平台管理"></uni-list-item>
 			</uni-list>
 		</uni-section>
 	</view>

@@ -42,6 +42,20 @@
 				"navigationBarTitleText": "账单分类管理",
 				"navigationStyle": "custom"
 			}
+		},
+		{
+			"path": "pages/mine/billRole",
+			"style": {
+				"navigationBarTitleText": "消费角色管理",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/mine/billPlatform",
+			"style": {
+				"navigationBarTitleText": "消费平台管理",
+				"navigationStyle": "custom"
+			}
 		}
 	],
 	"globalStyle": {

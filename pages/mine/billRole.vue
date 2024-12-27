@@ -1,30 +1,22 @@
 <template>
     <view class="container">
         <!-- 顶部导航栏 -->
-        <page-nav title="账单分类管理" showBack="true"></page-nav>
-        <view class="tab-bar fixed-bar">
-            <view class="tab-bar-item" :class="{ active: currentTab === 'expense' }" @click="switchTab('expense')">
-                支出
-            </view>
-            <view class="tab-bar-item" :class="{ active: currentTab === 'income' }" @click="switchTab('income')">
-                收入
-            </view>
-        </view>
+        <page-nav title="消费角色管理" showBack="true"></page-nav>
 
         <view class="content">
             <view class="custom-list">
-                <view class="list-item" v-for="(item, index) in categoryList" :key="index">
+                <view class="list-item" v-for="(item, index) in dataList" :key="index">
                     <!-- 左侧：星星和名称 -->
                     <view class="item-left">
-                        <view class="star-wrapper" :class="{ common: item.isCommon === 1 }"
-                            >
-                            <text class="star-text">{{ item.isCommon === 1 ? '常用' : '未常用' }}</text>
+                        <view v-if="item.isDefault" class="star-wrapper common"
+                            @click.stop="toggleCommon(item)">
+                            <text class="star-text">默认</text>
                         </view>
-                        <text class="item-text">{{ item.name }}</text>
+                        <text class="item-text">{{ item.roleName }}</text>
                     </view>
                     <!-- 右侧：编辑和删除 -->
                     <view class="item-right">
-                        <view class="action-wrapper" @click.stop="editCategory(item)">
+                        <view class="action-wrapper" @click.stop="editModel(item)">
                             <uni-icons type="gear" size="18" class="icon"></uni-icons>
                             <text class="action-text">编辑</text>
                         </view>
@@ -38,7 +30,7 @@
             <uni-row style="margin-top: 30px;" class="demo-uni-row uni-mt-7" :gutter="gutter" :width="nvueWidth"
                 @click="addCategory">
                 <uni-col :span="12" :offset="6">
-                    <button type="primary" @click="addCategory">新增分类</button>
+                    <button type="primary" @click="addModel">新增角色</button>
                 </uni-col>
             </uni-row>
 
@@ -52,14 +44,11 @@
                 <uni-title type="h1" :title="popupTitle" color="#027fff"></uni-title>
 
                 <uni-forms ref="form" :modelValue="modelValue" label-position="top" label-width="300">
-                    <uni-forms-item name="name" label="分类名称" required>
-                        <uni-easyinput v-model="modelValue.name" placeholder="分类名称" />
+                    <uni-forms-item name="name" label="名称" required>
+                        <uni-easyinput v-model="modelValue.roleName" placeholder="名称" />
                     </uni-forms-item>
-                    <uni-forms-item name="sort" label="排序(越小越靠前)" required>
-                        <uni-number-box v-model="modelValue.sort" @change="changeValue" />
-                    </uni-forms-item>
-                    <uni-forms-item name="isCommon" label="是否常用" required>
-                        <uni-data-checkbox v-model="modelValue.isCommon" :localdata="commonTypes" />
+                    <uni-forms-item name="isDefault" label="是否默认" required>
+                        <uni-data-checkbox v-model="modelValue.isDefault" :localdata="commonTypes" />
                     </uni-forms-item>
                     <view class="button-container">
                         <button @click="closePopup">取消</button>
@@ -74,50 +63,39 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
-import { categoryService } from '@/api/category';
+import { billRoleService } from '@/api/billRole';
 
 const gutter = ref(0);
 const nvueWidth = ref(730);
-const currentTab = ref('expense');
-const categoryList = ref([]);
+const dataList = ref([]);
 const defaultBillId = ref(uni.getStorageSync('defaultBillId'));
 const popup = ref(null);
 const form = ref(null);
-const popupTitle = ref('添加分类');
+const popupTitle = ref('添加角色');
 const listQuery = ref({
     pageNum: 1,
     pageSize: 100,
     billId: defaultBillId.value,
-    type: currentTab.value,
-    isAsc: 'desc,asc',
-    orderByColumn: 'isCommon,sort'
 });
 const commonTypes = [
-    { text: '是', value: 1 },
-    { text: '否', value: 0 }
+    { text: '是', value: true },
+    { text: '否', value: false }
 ];
 const modelValue = reactive({
     id: null,
-    name: '',
-    type: currentTab.value,
+    roleName: '',
     sort: 0,
-    isCommon: 0,
+    isDefault: 0,
     billId: defaultBillId.value
 })
 
 onMounted(async () => {
-    await getCategoryList();
+    await getDataList();
 });
 
-async function getCategoryList() {
-    const { data } = await categoryService.getPage(listQuery.value);
-    categoryList.value = data.records;
-}
-
-async function switchTab(tab) {
-    currentTab.value = tab;
-    listQuery.value.type = tab;
-    getCategoryList();
+async function getDataList() {
+    const { data } = await billRoleService.getPage(listQuery.value);
+    dataList.value = data.records;
 }
 
 function closePopup() {
@@ -132,26 +110,21 @@ function openPopup() {
     }
 }
 
-function editCategory(item) {
-    console.log('编辑分类', item)
-    // 编辑分类逻辑
-    popupTitle.value = "编辑分类";
-    // 直接更新 currentBill 对象的每个字段
+function editModel(item) {
+    popupTitle.value = "编辑角色";
     Object.assign(modelValue, item);
     openPopup();
 }
 
-function addCategory() {
+function addModel() {
     if (form.value) {
         form.value.clearValidate();
     }
     modelValue.id = null;
-    modelValue.name = '';
-    modelValue.type = currentTab.value;
-    modelValue.sort = 0;
-    modelValue.isCommon = 0;
+    modelValue.roleName = '';
+    modelValue.isDefault = 0;
     modelValue.billId = defaultBillId.value;
-    popupTitle.value = "添加分类";
+    popupTitle.value = "添加角色";
     openPopup();
 }
 
@@ -160,17 +133,17 @@ async function saveModelValue() {
         if (form.value) {
             await form.value.validate();
         }
-        if (!modelValue.name) {
+        if (!modelValue.roleName) {
             uni.showToast({
-                title: '分类名称不能为空',
+                title: '角色名称不能为空',
                 icon: 'none'
             });
             return;
         }
         if (modelValue.id) {
-            await categoryService.update(modelValue);
+            await billRoleService.update(modelValue);
         } else {
-            await categoryService.save(modelValue);
+            await billRoleService.save(modelValue);
         }
         // 弹窗提示保存成功
         uni.showToast({
@@ -178,7 +151,7 @@ async function saveModelValue() {
             icon: 'success'
         });
         // 刷新账单列表
-        getCategoryList();
+        getDataList();
         closePopup();
     } catch (error) {
         console.error('保存失败：', error);
@@ -192,13 +165,13 @@ function deleteModel(id) {
         success: async (res) => {
             if (res.confirm) {
                 try {
-                    await categoryService.delete(id);
+                    await billRoleService.delete(id);
                     uni.showToast({
                         title: '删除成功',
                         icon: 'success'
                     });
                     // 刷新账单列表
-                    getCategoryList();
+                    getDataList();
                 } catch (error) {
                     console.error('删除失败：', error);
                 }
