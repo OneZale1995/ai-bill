@@ -49,12 +49,12 @@
 
       <!-- 角色选择 -->
       <uni-forms-item label="角色" name="role" required>
-        <uni-data-select v-model="form.role" :localdata="roleOptions" placeholder="请选择角色" />
+        <uni-data-select v-model="form.role" :localdata="roleOptions" placeholder="请选择角色" :allow-custom="true"  />
       </uni-forms-item>
 
       <!-- 平台选择 -->
       <uni-forms-item label="平台" name="platform" required>
-        <uni-data-select v-model="form.platform" :localdata="platformOptions" placeholder="请选择平台" />
+        <uni-data-select v-model="form.platform" :localdata="platformOptions" placeholder="请选择平台" :allow-custom="true"  />
       </uni-forms-item>
 
       <!-- 备注输入 -->
@@ -109,178 +109,101 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import pageNav from '@/components/page-nav.vue'
-import { billPlatformService } from '../../api/billPlatform'
 import { categoryService } from '../../api/category'
 import { billRoleService } from '../../api/billRole'
+import { billPlatformService } from '../../api/billPlatform'
+
 
 const formRef = ref(null)
-const today = new Date().toISOString().split('T')[0]
-const defaultBillId = ref(uni.getStorageSync('defaultBillId'));
-const currentTab = ref('expense');
-// 表单数据
-const form = ref({
-  amount: '',
-  type: currentTab.value, // 默认支出
-  categoryId: '',
-  date: today,
-  role: '',
-  platform: '',
-  remark: ''
-})
+const defaultBillId = ref(uni.getStorageSync('defaultBillId'))
+const currentTab = ref('expense')
 const listQuery = ref({
   pageNum: 1,
-  pageSize: 100,
+  pageSize: 200,
   billId: defaultBillId.value,
-});
-// 分类数据
-const expenseCategories = ref([])
-const incomeCategories = ref([])
-// 当前显示的分类（前8个）
-// const displayCategories = computed(() => {
-//   const categories = form.value.type === 'expense' ? incomeCategories : expenseCategories
-//   return categories.slice(0, 8)
-// })
-const roleOptions = ref([])
-const platformOptions = ref([])
-
-onMounted(async () => {
-    await getCategoryList();
-
-});
-
-async function getCategoryList() {
-  const queryData = listQuery.value;
-  queryData.pageNum.value = 1;
-  queryData.pageSize = 200;
-  queryData.isAsc.value = 'desc,asc';
-  queryData.orderByColumn.value = 'isCommon,sort';
-  const { data } = await categoryService.getPage(queryData.value);
-  const dataList = data.records;
-  expenseCategories.value = dataList.filter(item => item.type === 'expense')
-  incomeCategories.value = dataList.filter(item => item.type === 'income')
-}
-
-async function getPlatformList() {
-  const { data } = await billPlatformService.getPage(listQuery.value);
-  platformOptions.value = data.records;
-}
-
-// 表单验证规则
-const rules = {
-  date: {
-    rules: [{ required: true, errorMessage: '请选择日期' }]
-  },
-  // role: {
-  //   rules: [{ required: true, errorMessage: '请选择角色' }]
-  // },
-  // platform: {
-  //   rules: [{ required: true, errorMessage: '请选择平台' }]
-  // }
-}
-
-// 金额输入处理
-const inputNumber = (num) => {
-  if (form.value.amount === '' && num === '.') {
-    form.value.amount = '0.'
-  } else if (form.value.amount === '0' && num !== '.') {
-    form.value.amount = num
-  } else if (num === '.' && form.value.amount.includes('.')) {
-    return
-  } else if (form.value.amount.includes('.') && form.value.amount.split('.')[1].length >= 2) {
-    return
-  } else {
-    form.value.amount += num
-  }
-}
-
-const deleteNumber = () => {
-  form.value.amount = form.value.amount.slice(0, -1)
-}
-
-// 表单提交
-const handleSubmit = async () => {
-  if (!form.value.amount || parseFloat(form.value.amount) === 0) {
-    uni.showToast({
-      title: '请输入金额',
-      icon: 'none'
-    })
-    return
-  }
-
-  try {
-    await formRef.value.validate()
-
-    // TODO: 发送请求到后端
-    console.log('提交的表单数据：', form.value)
-
-    uni.showToast({
-      title: '保存成功',
-      icon: 'success'
-    })
-
-    setTimeout(() => {
-      uni.navigateBack()
-    }, 1500)
-  } catch (err) {
-    uni.showToast({
-      title: '请完善表单信息',
-      icon: 'none'
-    })
-  }
-}
-
-// 保存并继续
-const saveAndContinue = async () => {
-  if (!form.value.amount || parseFloat(form.value.amount) === 0) {
-    uni.showToast({
-      title: '请输入金额',
-      icon: 'none'
-    })
-    return
-  }
-
-  try {
-    await formRef.value.validate()
-
-    // TODO: 发送请求到后端
-    console.log('提交的表单数据：', form.value)
-
-    uni.showToast({
-      title: '保存成功',
-      icon: 'success'
-    })
-
-    // 重置表单
-    form.value = {
-      amount: '',
-      type: form.value.type,
-      categoryId: '',
-      date: today,
-      role: form.value.role,
-      platform: form.value.platform,
-      remark: ''
-    }
-  } catch (err) {
-    uni.showToast({
-      title: '请完善表单信息',
-      icon: 'none'
-    })
-  }
-}
-
-const popup = ref(null)
-
-// 当前类型的所有分类
-const currentCategories = computed(() => {
-  return form.value.type === 1 ? incomeCategories : expenseCategories
+  isAsc: 'desc,asc',
+  orderByColumn: 'isCommon,sort'
 })
 
-// 显示全部分类
-const showAllCategories = () => {
-  popup.value.open()
+const roleOptions = ref([])
+const platformOptions = ref([])
+const rolePageQuery = ref({
+  pageNum: 1,
+  pageSize: 100,
+  billId: defaultBillId.value
+})
+// 表单数据与默认值
+const defaultFormValues = {
+  amount: '',
+  type: currentTab.value,
+  categoryId: '',
+  date: new Date().toISOString().split('T')[0],
+  role: '',
+  platform: '',
+  remark: '',
+  billId: defaultBillId.value
 }
+const form = reactive({ ...defaultFormValues })
+// 获取角色列表
+async function getRoleList() {
+  const { data } = await billRoleService.getPage(rolePageQuery.value)
+  // 映射 text value 形式
+  roleOptions.value = data.records.map(item => {
+    return {
+      text: item.roleName,
+      value: item.roleName
+    }
+  })
+  const defaultRole = data.records.find(item => item.isDefault)
+  form.role = defaultRole ? defaultRole.roleName : ''
+}
+// 获取平台列表
+async function getPlatformList() {
+  const { data } = await billPlatformService.getPage(rolePageQuery.value)
+  platformOptions.value = data.records.map(item => {
+    return {
+      text: item.name,
+      value: item.name
+    }
+  })
+
+}
+
+// 分类数据缓存
+const categories = ref({
+  expense: [],
+  income: []
+})
+
+// 获取分类列表（一次性获取所有分类）
+async function getCategoryList() {
+  const { data } = await categoryService.getPage(listQuery.value)
+  const dataList = data.records
+  categories.value.expense = dataList.filter(item => item.type === 'expense')
+  categories.value.income = dataList.filter(item => item.type === 'income')
+  // 切换tab时，默认展示前8个分类
+  displayCategories.value = categories.value.expense.slice(0, 8)
+}
+
+// 当前类型的分类
+const getCurrentCategories = () => categories.value[currentTab.value]
+
+// 显示的分类（前8个）
+const displayCategories = computed(() => getCurrentCategories().slice(0, 8))
+
+// 切换tab
+async function switchTab(tab) {
+  currentTab.value = tab
+  displayCategories.value = getCurrentCategories().slice(0, 8)
+}
+
+// 弹窗引用
+const popup = ref(null)
+
+// 显示全部分类
+const showAllCategories = () => popup.value.open()
 
 // 选择分类
 const selectCategory = (item) => {
@@ -288,10 +211,10 @@ const selectCategory = (item) => {
   popup.value.close()
 }
 
-// 当前选中的分类
-const selectedCategory = computed(() => {
-  const categories = form.value.type === 1 ? incomeCategories : expenseCategories
-  return categories.find(item => item.id === form.value.categoryId)
+onMounted(async () => {
+  await getCategoryList()
+  await getRoleList()
+  await getPlatformList()
 })
 </script>
 
