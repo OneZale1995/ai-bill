@@ -37,50 +37,19 @@
   background: linear-gradient(180deg, #2878ff 0%, #2878ff 100%);
   padding: 20rpx 32rpx; // 减小padding
   color: #fff;
-
-  .balance {
-    text-align: center;
-    margin-bottom: 16rpx; // 减小margin
-
-    .label {
-      font-size: 24rpx; // 减小字体
-      opacity: 0.9;
-    }
-
-    .amount {
-      display: block;
-      font-size: 48rpx; // 减小字体
-      font-weight: 500;
-      margin-top: 4rpx;
-      font-family: 'DIN Alternate', sans-serif;
-
-      &.negative {
-        color: #ff4d4f;
-      }
-    }
-  }
-
-  .details {
-    display: flex;
-    justify-content: space-around;
-
-    .income,
-    .expense {
-      text-align: center;
-
-      .label {
-        font-size: 24rpx;
-        opacity: 0.9;
-      }
-
-      .value {
-        display: block;
-        font-size: 28rpx;
-        margin-top: 4rpx;
-        font-family: 'DIN Alternate', sans-serif;
-      }
-    }
-  }
+	text-align: left;
+	    display: flex; /* 使用 Flex 布局 */
+	    justify-content: space-between; /* 左对齐 */
+	    align-items: center; /* 垂直居中对齐元素 */
+			.label {
+			    margin-right: 10px; /* 为 label 元素添加右侧间距，增强可读性 */
+			}
+			.amount,
+			.value {
+			}
+			.negative {
+    color: #FF4500; /* 使用橙红色表示负数，与蓝底形成对比，且更加醒目 */
+			}
 }
 
 .bill-list {

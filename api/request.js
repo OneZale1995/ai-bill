@@ -38,7 +38,7 @@ const request = (options) => {
             if (res.data.code === 401) {
               console.log('token过期')
               uni.removeStorageSync('token');
-              uni.switchTab({
+              uni.reLaunch({
                 url: '/pages/index/index'
               })
             }

@@ -1,17 +1,19 @@
 <template>
   <view class="container">
-    <view class="nav-bar">
-      <text class="title">统计</text>
-    </view>
-    
+    <page-nav title="统计" ></page-nav>
+
     <!-- 时间选择器 -->
     <view class="time-selector">
-      <view class="month-picker">
-        <text>2024年3月</text>
-        <text class="arrow-down">▼</text>
-      </view>
+      <picker @change="onTimeRangeChange" mode="selector">
+        <view class="month-picker">
+          <text>{{ selectedTimeRangeText }}</text>
+          <text class="arrow-down">▼</text>
+        </view>
+      </picker>
+      <!-- 如果需要支持用户自定义时间输入，添加如下输入框，此处示例仅供参考，需完善交互逻辑 -->
+      <!-- <input type="text" placeholder="请输入自定义时间范围" v-model="customTimeRange" /> -->
     </view>
-    
+
     <!-- 收支总览 -->
     <view class="overview">
       <view class="overview-item">
@@ -27,13 +29,13 @@
         <text class="amount">¥{{ balance }}</text>
       </view>
     </view>
-    
+
     <!-- 分类统计 -->
     <view class="statistics-section">
       <view class="section-header">
         <text class="title">支出构成</text>
       </view>
-      
+
       <!-- 排行榜展示 -->
       <view class="rank-list">
         <view 
@@ -59,24 +61,68 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 
-// Mock 数据
-const totalExpense = ref(2750.00)
-const totalIncome = ref(5000.00)
-const balance = computed(() => (totalIncome.value - totalExpense.value).toFixed(2))
+// 存储当前选择的时间范围，初始值可以根据需求设定，比如默认本月
+const selectedTimeRange = ref('month');
+// 根据时间范围展示的文本，用于界面显示
+const selectedTimeRangeText = ref('本月');
+// 存储后端获取的总支出数据
+const totalExpense = ref(0);
+// 存储后端获取的总收入数据
+const totalIncome = ref(0);
+// 根据收入和支出计算结余
+const balance = computed(() => (totalIncome.value - totalExpense.value).toFixed(2));
 
 // 颜色配置
-const colors = ['#2878ff', '#36cfc9', '#ff7a45', '#597ef7', '#73d13d']
+const colors = ['#2878ff', '#36cfc9', '#ff7a45', '#597ef7', '#73d13d'];
 
-// 支出排行数据
-const expenseRank = [
-  { name: '餐饮', amount: 1200, percent: 43.6 },
-  { name: '交通', amount: 500, percent: 18.2 },
-  { name: '购物', amount: 450, percent: 16.4 },
-  { name: '娱乐', amount: 300, percent: 10.9 },
-  { name: '其他', amount: 300, percent: 10.9 }
-]
+// 存储后端获取的支出排行数据
+const expenseRank = ref([]);
+
+// 时间范围改变时触发的函数，用于更新界面显示文本以及请求对应数据
+const onTimeRangeChange = (e) => {
+  const { value } = e.detail;
+  selectedTimeRange.value = value;
+  switch (value) {
+    case 'week':
+      selectedTimeRangeText.value = '本周';
+      break;
+    case 'month':
+      selectedTimeRangeText.value = '本月';
+      break;
+    case 'year':
+      selectedTimeRangeText.value = '本年';
+      break;
+    case 'all':
+      selectedTimeRangeText.value = '全部';
+      break;
+    default:
+      break;
+  }
+  // 调用获取数据函数，根据新的时间范围获取数据
+  fetchDataByTimeRange(selectedTimeRange.value);
+};
+
+// 初始化时获取默认时间范围（比如本月）的数据
+onMounted(() => {
+  fetchDataByTimeRange(selectedTimeRange.value);
+});
+
+// 根据时间范围向后端请求数据的函数
+const fetchDataByTimeRange = (timeRange) => {
+  axios.get(`/your-backend-api-url?timeRange=${timeRange}`)
+   .then((response) => {
+      const { totalExpense: expense, totalIncome: income, expenseRank: rank } = response.data;
+      totalExpense.value = expense;
+      totalIncome.value = income;
+      expenseRank.value = rank;
+    })
+   .catch((error) => {
+      console.error('获取数据出错：', error);
+    });
+};
 </script>
 
 <style lang="scss">
