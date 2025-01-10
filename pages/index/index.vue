@@ -286,6 +286,7 @@ async function getAccountBills() {
 			return;
 		}
 		queryParams.value.billId = currentAccount.value.id;
+		uni.setStorageSync("defaultBillId", currentAccount.value.id)
 	} catch (error) {
 		console.error('获取账户账单信息失败：', error);
 		// 显示错误信息给用户

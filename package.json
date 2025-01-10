@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "A bill management app built with uni-app",
   "main": "main.js",
-  "dependencies": {},
+  "dependencies": {
+    "dayjs": "^1.11.13"
+  },
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

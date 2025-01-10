@@ -33,8 +33,14 @@ export const billRecordsService = {
 			url: moduleName + '/deleteBillRecord/'+id,
 			method: 'POST',
 		})
+	},
+	// 获取统计数据
+	async getBillRecordStatistics(data){
+		return request({
+			url: moduleName + '/getBillRecordStatistics',
+			method: 'POST',
+			data: data
+		})
 	}
-
-	
 }
 
