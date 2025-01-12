@@ -259,6 +259,12 @@ function goToAdd() {
 	});
 }
 
+/** 跳转到欢迎页面 */
+function goToWelcome() {
+	uni.redirectTo({
+		url: '/pages/index/welcome',
+	});
+}
 
 function goToDetail(record) {
 	const data = encodeURIComponent(JSON.stringify(record));
@@ -342,6 +348,7 @@ onMounted(async () => {
 		if (!token) {
 			await handleWxLogin();
 		}
+		goToWelcome();
 		await getAccountBills();
 		// 在获取账户账单信息后调用 getList 函数，确保只调用一次
 		await getList();

@@ -17,9 +17,9 @@
                     </uni-list>
                 </template>
                 <view slot="actions" class="card-actions">
-                    <view v-if="bill.type == 'more'" class="card-actions-item" @click="actionsClick('分享')">
+                    <view v-if="bill.type == 'more'" class="card-actions-item">
                         <uni-icons type="personadd-filled" size="18" color="#999"></uni-icons>
-                        <text class="card-actions-item-text">邀请好友</text>
+                        <text class="card-actions-item-text">{{ bill.inviteCode }}</text>
                     </view>
                     <view class="card-actions-item" @click="editBill(bill)">
                         <uni-icons type="gear-filled" size="18" color="#999"></uni-icons>

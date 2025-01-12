@@ -2,6 +2,12 @@
 	<view class="container">
 		<!-- 顶部导航栏 -->
 		<page-nav title="我的"></page-nav>
+		
+		<!-- 邀请码卡片 -->
+		<view class="invite-card" v-if="billInfo.type == 'more'" @click="copyInviteCode">
+			<text>邀请码: {{ billInfo.inviteCode }}</text>
+		</view>
+
 		<uni-section title="账本常用管理" type="line">
 			<uni-list>
 				<uni-list-item showArrow :to="`./bill`" @click="onClick" title="账本管理"></uni-list-item>
@@ -15,52 +21,55 @@
 
 <script setup>
 import {
-	ref
+	ref,
+	onMounted
 } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
+import {
+	billService
+} from '@/api/bill';
+const billId = ref(uni.getStorageSync('defaultBillId'))
 
-const currentBookId = ref(1);
-const newBookName = ref('');
-const createBookPopup = ref(null);
+const billInfo = ref({})
 
-// Mock数据
-const accountBooks = ref([{
-	id: 1,
-	name: '我的账本',
-	role: '个人账本'
-},
-{
-	id: 2,
-	name: '家庭账本',
-	role: '管理员'
-},
-]);
-
-const closePopup = () => {
-	createBookPopup.value.close();
-	newBookName.value = '';
-};
-
-const createBook = () => {
-	if (!newBookName.value) {
-		uni.showToast({
-			title: '请输入账本名称',
-			icon: 'none',
-		});
-		return;
+async function getBillInfo(){
+	const params = {
+		billId: billId.value // Accessing value as a property
 	}
+	const res = await billService.getBills(params)
+	const data = res.data;
+	if(data){
+		billInfo.value = data.records[0]
+	}
+}
+function copyInviteCode() {
+    if (billInfo.value.inviteCode) {
+        uni.setClipboardData({
+            data: billInfo.value.inviteCode,
+            success: function () {
+                uni.showToast({
+                    title: '邀请码已复制',
+                    icon: 'success'
+                });
+            },
+            fail: function () {
+                uni.showToast({
+                    title: '复制失败',
+                    icon: 'none'
+                });
+            }
+        });
+    }
+}
 
-	accountBooks.value.push({
-		id: Date.now(),
-		name: newBookName.value,
-		role: '管理员',
-	});
+onMounted( async () => {
+	getBillInfo()
+})
 
-	closePopup();
-};
+onShow( async () => {
+	getBillInfo()
+})
 
-const switchBook = (book) => {
-	currentBookId.value = book.id;
-};
 </script>
 
 <style lang="scss">
@@ -83,5 +92,15 @@ const switchBook = (book) => {
 	font-size: 12px;
 	color: #666;
 	margin-left: 5px;
+}
+
+.invite-card {
+	background-color: #f9f9f9;
+	padding: 10px;
+	margin: 10px 0;
+	border-radius: 5px;
+	text-align: center;
+	font-size: 16px;
+	color: #333;
 }
 </style>

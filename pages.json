@@ -8,6 +8,12 @@
 			}
 		},
 		{
+			"path": "pages/index/welcome",
+			"style": {
+				"navigationBarTitleText": "欢迎"
+			}
+		},
+		{
 			"path": "pages/add/index",
 			"style": {
 				"navigationBarTitleText": "记账",
@@ -19,7 +25,6 @@
 			"style": {
 				"navigationBarTitleText": "统计",
 				"navigationStyle": "custom"
-				
 			}
 		},
 		{
